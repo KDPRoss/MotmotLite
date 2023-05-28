@@ -7,12 +7,19 @@ EXEC=MotmotLite
 
 # -- ===== Top-Level Targets ===== --
 
+.PHONY: default
+default: clean build test
+
 .PHONY: build
 build: $(EXEC)
 
 .PHONY: run
 run: build
 	rlwrap ./$(EXEC)
+
+.PHONY: test
+test: $(EXEC)
+	cram -v *.t
 
 
 
