@@ -1,0 +1,208 @@
+-- MotmotLite --
+
+-- ===== Data Types ===== --
+
+-- Numbers
+2 + 3
+
+2 + 3 * 4
+
+-- Booleans
+True
+
+False
+
+-- Lists
+[{ Num }] -- Empty list requires type annotation.
+
+[ 1, 2, 3 ]
+
+1 :: 2 :: 3 :: [{ Num }]
+
+Cons 1 (Cons 2 (Cons 3 Nil{ Num }))
+
+Nil : (a : *) => [ a ]
+
+[{ Num }] : [ Num ]
+
+-- Maybe
+Just 5
+
+Nothing{ [ Num ] }
+
+-- Tuples
+(Just [ 3 ], (9, [ [ 7 ] ]))
+
+-- ===== Lambdas and Patterns ===== --
+-- Variable (irrefutable)
+x : Num ~ 1
+
+-- Wildcard (irrefutable)
+_ : Num ~ 7
+
+-- Tuple
+(x : Num, y : Bool) ~ 1
+
+-- Constant pattern
+7 ~ 12
+
+-- Expression pattern
+`(3 + 4) ~ 12
+
+-- Constructor pattern
+Just (Just 7) ~ 3
+
+-- With explicit type parameters
+Just{ Maybe Num } (Just{ Num } 7) ~ 3
+
+-- Empty-list pattern
+[{ Num }] ~ 9
+
+-- Equivalent constructor pattern
+Nil{ Num } ~ 9
+
+-- List deconstruction
+(x : Num) :: (_ : [ Num ]) ~ x
+
+-- Fixed-length-list pattern
+[ x1 : Num, x2 : Num ] ~ x1 + x2
+
+-- Predicate pattern
+{_ =< 5} ~ 3
+
+-- Conjunction pattern
+((x : Num) :: (_ : [ Num ])) and (xs : [ Num ]) ~ x :: xs
+
+-- 'When' pattern
+(x : Num) and `{x >= 5} ~ x
+
+-- ===== Partial-Function Composition ===== --
+(0 ~ 0) <+
+  (n : Num ~ n - 1)
+
+-- We can have more `fun` (this is equivalent to the
+-- previous example)
+fun
+(0       ~ 0)
+(n : Num ~ n - 1)
+
+-- 'Mismatched-shape' composition (These may be composed
+-- because they both have type `Num -> Num`.)
+fun
+(0 ~ 1)
+id{ Num }
+
+-- Immediate application
+case 12 of
+(0       ~ 0)
+(n : Num ~ n - 1)
+
+-- Backtracking (to ignore possible list-length mismatch)
+add-corresponding-elements [ 1, 2 ] [ 3, 4, 5, 6, 7 ]
+where (add-corresponding-elements : [ Num ] -> [ Num ] -> [ Num ]) =
+        fun
+        (_ : [ Num ]                 | [{ Num }]                   ~ [{ Num }])
+        ([{ Num }]                   ~ _ : [ Num ]                 ~ [{ Num }])
+        ((m : Num) :: (ms : [ Num ]) ~ (n : Num) :: (ns : [ Num ]) ~ (m + n) :: add-corresponding-elements ms ns)
+
+-- ===== Other Useful / Fun Things ===== --
+
+-- Numbers are arbitrary-precision rationals; not floats
+1 / 3 + 2 / 3 == 1
+
+-- Type Annotation
+3 : Num
+
+-- Pipelining and sections
+12 |>
+  (_ - 3) >>
+  (7 * _)
+
+-- Memoisation via `Map`s
+-- (Try this version, e.g., with an input of `30`.)
+fib-naive : Num -> Num =
+  fun
+  (0                     ~ 1)
+  (1                     ~ 1)
+  ((n : Num) and {_ > 1} ~ fib-naive (n - 2) + fib-naive (n - 1))
+
+-- Equivalent but faster (It takes every bit of self-control
+-- that I have to not launch into a discussion about monads
+-- here.)
+fib-memo : Num -> Num =
+  n : Num ~
+    v
+  where (v : Num, _ : Map Num Num) = core { 0 |-> 1, 1 |-> 1 } n
+      | (core : Map Num Num -> Num -> (Num, Map Num Num)) =
+          m : Map Num Num ~ n : Num ~
+            case m >+> n of
+            (Just (n' : Num) ~ (n', m))
+            (Nothing{ Num }  ~ (n', m''')
+                               where (n' : Num)                   = l + r
+                                   | (m''' : Map Num Num)         = m'' <+> n |-> n'
+                                   | (l : Num, m' : Map Num Num)  = core m (n - 2)
+                                   | (r : Num, m'' : Map Num Num) = core m' (n - 1)
+            )
+
+-- ===== Party Tricks ===== --
+
+-- Typing self-application
+f : (a : *) => a -> a ~ f f
+
+-- Non-prenex-normal types (i.e., full F_omega)
+poly-pair : (a : *) => a -> (b : *) => b -> (a, b) =
+  (a : *) =>
+    x : a ~
+      (b : *) =>
+        y : b ~
+          (x, y)
+
+-- Out-of-order type application (We're providing the
+-- argument for the `b` formal type parameter ... which
+-- cannot be inferred.)
+funny-games
+where (funny-games : (a : *) => (b : *) => a -> b) =
+        (a : *) => (b : *) =>
+          x : a ~
+            funny-games{ _, b } x
+
+
+-- Polymorphic recursion
+-- ('Mycroft (Coupled)' from Hallett and Kfoury, 2004)
+(sq-list [ 2, 4 ], comp-list [ True, False ])
+where (my-map : (a : *) => (a -> a) -> [ a ] -> [ a ]) =
+        (a : *) =>
+          fun
+          (_ : a -> a | [{ a }]                 ~ [{ a }])
+          (f : a -> a ~ (l : a) :: (ls : [ a ]) ~ f l :: my-map f ls)
+    | (sq-list : [ Num ] -> [ Num ])     = my-map (x : Num ~ x * x)
+    | (comp-list : [ Bool ] -> [ Bool ]) = my-map not
+
+-- Tail recursion via CPS -- it's like `goto`, but better
+-- and more self-referential (n.b., the type parameter `c`
+-- isn't strictly necessary, but parametricity helps keep us
+-- out of trouble) (n.b., we could have gone *full-on* and
+-- taken a CPSed funtion to map)
+map-cps : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] =
+  (a : *) => (b : *) =>
+    f : a -> b ~
+      loop id{ [ b ] }
+    where (loop : (c : *) => ([ b ] -> c) -> [ a ] -> c) =
+            (c : *) =>
+              k : [ b ] -> c ~
+                fun
+                ([{ a }]                 ~ k [{ b }])
+                ((x : a) :: (xs : [ a ]) ~ loop k' xs
+                                           where (k' : [ b ] -> c) = ys : [ b ] ~ k (f x :: ys)
+                )
+
+map-naive : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] =
+  (a : *) => (b : *) =>
+    fun
+    (f : a -> b | (x : a) :: (xs : [ a ]) ~ f x :: map-naive f xs)
+    (_ : a -> b ~ [{ a }]                 ~ [{ b }])
+
+-- (evaluates to `True`)
+map-naive f xs == map-cps f xs
+where (f : Num -> Num) = _ + 3
+    | (xs : [ Num ])   = [ 1, 17, 12 ]
