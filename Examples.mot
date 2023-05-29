@@ -1,0 +1,213 @@
+-- MotmotLite --
+
+2 + 3
+
+True : Bool
+
+12 : Num
+
+93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000 : Num
+
+Cons 2 (Cons 3 Nil{ Num })
+
+Cons{ Num } 2 (Cons{ Num } 3 Nil{ Num })
+
+Cons 3 : [ Num ] -> [ Num ]
+
+Nil : (a : *) => [ a ]
+
+Nil{ Num } : [ Num ]
+
+Nothing{ Maybe Num } : Maybe (Maybe Num)
+
+(2, True) : (Num, Bool)
+
+(Just 7, False, 12, (3, True)) : (Maybe Num, Bool, Num, (Num, Bool))
+
+(3, [ 5 ], Nothing{ [ (Num, Num) ] }) : (Num, [ Num ], Maybe [ ( Num, Num ) ])
+
+x : Num ~ 1
+
+(x : Num, y : Bool) ~ 1
+
+_ : [ Num ] ~ 1
+
+3 ~ 1
+
+`(3 + 4) ~ 1
+
+7 ~ 1
+
+(x : Num) :: (xs : [ Num ]) ~ 1
+
+{_ > 5} ~ 1
+
+(x : Num) and {_ > 5} ~ 1
+
+(x : Num) and `{x > 5} ~ 1
+
+3 :: (_ : [ Num ]) ~ 1
+
+`(1 + 2) :: (_ : [ Num ]) ~ 1
+
+{_ == 3} :: (_ : [ Num ]) ~ 1
+
+((x : Num) and `{x == 3}) :: (_ : [ Num ]) ~ 1
+
+(x : Num) :: (_ : [ Num ]) and `{x == 3} ~ 1
+
+`(1 + 2) :: (_ : [ Num ]) ~ 1
+
+x : Num ~ x + 1
+
+1 ~ 0
+
+x : Num ~ 5 ~ x + 2
+
+x : Num | 5 ~ x + 2
+
+giggles : Num -> Num =
+  fun
+  ({_ =< 0} ~ 1)
+  (n : Num  ~ giggles (n - 1))
+
+mapNum : (Num -> Num) -> [ Num ] -> [ Num ] =
+  fun
+  (f : Num -> Num | (x : Num) :: (xs : [ Num ]) ~ f x :: mapNum f xs)
+  (f : Num -> Num | _ : [ Num ] ~ [{ Num }])
+
+mapNum2 : (Num -> Num) -> [ Num ] -> [ Num ] =
+  fun
+  (f : Num -> Num | (x : Num) :: (xs : [ Num ]) ~ f x :: mapNum2 f xs)
+  (_ : Num -> Num | _ : [ Num ] ~ [{ Num }])
+
+mapNum3 : (Num -> Num) -> [ Num ] -> [ Num ] =
+  fun
+  (_ : Num -> Num | [{ Num }] ~ [{ Num }])
+  (f : Num -> Num | (x : Num) :: (xs : [ Num ]) ~ f x :: mapNum3 f xs)
+
+mapNum4 : (Num -> Num) -> [ Num ] -> [ Num ] =
+  fun
+  (_ : Num -> Num | [{ Num }] ~ [{ Num }])
+  (f : Num -> Num ~ (x : Num) :: (xs : [ Num ]) ~ f x :: mapNum4 f xs)
+
+poly-pair : (a : *) => a -> (b : *) => b -> (a, b) =
+  (a : *) =>
+    x : a ~
+      (b : *) =>
+        y : b ~
+          (x, y)
+
+mapPoly : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] =
+  (a : *) => (b : *) =>
+      fun
+      (_ : a -> b | [{ a }] ~ [{ b }])
+      (f : a -> b ~ (x : a) :: (xs : [ a ]) ~ f x :: mapPoly f xs)
+
+fff : (b : *) => (a : *) => a -> b =
+  (b : *) => (a : *) =>
+    x : a ~
+      fff{ b } x
+
+f : (a : *) => (Num -> a) -> Num -> a =
+  (a : *) =>
+    g : Num -> a ~
+      fun
+      (0 ~ g 1)
+      (n : Num ~ f (m : Num ~ g (m * n)) (n - 1))
+
+f id{ Num } 3
+
+id{ [ [ Num ] ] } (mapPoly{ Num, [ Num ] } (id{ Num -> [ Num ] } list{ Num }) [ 5, 2, 1 ])
+    where (list : (a : *) => a -> [ a ]) = (a : *) =>
+                                             x : a ~
+                                               [ x ]
+
+fac : Num -> Num =
+  fac-core 1
+  where (fac-core : Num -> Num -> Num) =
+          acc : Num ~
+            fun
+            (0       ~ acc)
+            (n : Num ~ fac-core (n * acc) (n - 1))
+
+concat : (a : *) => [ a ] -> [ a ] -> [ a ] =
+  (a : *) =>
+    xs : [ a ] ~ ys : [ a ] ~
+      loop xs
+    where (loop : [ a ] -> [ a ]) =
+            fun
+            ([{ a }]                 ~ ys)
+            ((x : a) :: (xs : [ a ]) ~ x :: loop xs)
+
+reverse : (a : *) => [ a ] -> [ a ] =
+  (a : *) =>
+    loop
+  where (loop : [ a ] -> [ a ]) =
+          fun
+          ([{ a }]                 ~ [{ a }])
+          ((x : a) :: (xs : [ a ]) ~ concat (loop xs) [ x ])
+
+run-tests : (a : *) => (b : *) => (a -> b) -> [ (a, b) ] -> Bool =
+  (a : *) => (b : *) =>
+    f : a -> b ~
+      loop True
+    where (loop : Bool -> [ (a, b) ] -> Bool) =
+            rsf : Bool ~
+              fun
+              ([{ (a, b) }]                        ~ rsf)
+              ((x : a, y : b) :: (ps : [ (a, b) ]) ~ loop rsf' ps
+                                                     where (rsf' : Bool) = y == f x and rsf
+              )
+
+run-tests reverse{ Num } [
+      ([{ Num }], [{ Num }]),
+      ([ 1 ], [ 1 ]),
+      ([ 1, 2, 3 ], [ 3, 2, 1 ]),
+      ([ 1, 1, 1 ], [ 1, 1, 1 ])
+    ]
+
+fib : Num -> Num =
+  fun
+  ({_ > 1} and (n : Num) ~ fib (n - 2) + fib (n - 1))
+  (_ : Num               ~ 1)
+
+  { 1 |-> 3, 2 |-> 7 }
+
+fib-memo : Num -> Num =
+  fun
+  (0       ~ 0)
+  (n : Num ~ fib-core ({ n |-> 0 } <+> 1 |-> 1) n)
+  where (fib-core : Map Num Num -> Num -> Num) =
+           memo : Map Num Num ~ n : Num ~
+             case memo >+> n of
+             (Just (f : Num) ~ f)
+             (Nothing{ Num } ~ fib-core (memo <+> n |-> f) n
+                               where (f : Num) = fib-core memo (n - 2) + fib-core memo (n - 1)
+             )
+
+fib-memo' : Num -> Num =
+  fun
+  (0       ~ 0)
+  (1       ~ 1)
+  (n : Num ~ fib-core ({ 0 |-> 0 } <+> 1 |-> 1) n)
+  where (fib-core : Map Num Num -> Num -> Num) =
+           memo : Map Num Num ~ n : Num ~
+             case memo >+> n of
+             (Just (f : Num) ~ f)
+             (Nothing{ Num } ~ fib-core (memo <+> n |-> f) n
+                               where (f : Num) = fib-core memo (n - 2) + fib-core memo (n - 1)
+             )
+
+fib-memo'' : Num -> Num =
+  fun
+  (0       ~ 0)
+  (1       ~ 1)
+  (n : Num ~ fib-core { 0 |-> 0, 1 |-> 1 } n)
+  where (fib-core : Map Num Num -> Num -> Num) =
+           memo : Map Num Num ~ n : Num ~
+             case memo >+> n of
+             (Just (f : Num) ~ f)
+             (Nothing{ Num } ~ fib-core (memo <+> n |-> f) n
+                               where (f : Num) = fib-core memo (n - 2) + fib-core memo (n - 1)
+             )
