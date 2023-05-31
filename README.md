@@ -187,6 +187,8 @@ ChatGPT describes MotmotLite:[^0]
   * Codeine / Codeine'
   * [Erlang](https://en.wikipedia.org/wiki/Erlang_(programming_language))
   * [F#](https://en.wikipedia.org/wiki/F_Sharphttps://github.com/KDPRoss/Sisserouedia.org/wiki/Purely_functional_programming)
+  * [Haskell](https://www.haskell.org/ghc/)
+* Related concepts:
   * [Generic Programming](https://en.wikipedia.org/wiki/Generic_programming)
   * [Hindley-Milner](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system)
   * [kinds](https://en.wikipedia.org/wiki/Kind_(type_theory))
