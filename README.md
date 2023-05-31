@@ -48,15 +48,15 @@ ChatGPT describes MotmotLite:[^0]
     * `opam install core extlib str zarith`
       * You *may* need to install some system packages
         (e.g., GMP); you're on your own there!
-  * Build it: `make build`
-  * Run it:
-    * Install `rlwrap` (optional, technically)
-    * `make run` (or just `./MotmotLite`)
-    * Run the tests (optional)
-      * You'll need `cram`, which you may be able to install
-        via your package manager ... or via the horrors of
-        Python / `pip`.
-      * `make test`
+* Build it: `make build`
+* Run it:
+  * Install `rlwrap` (optional, technically)
+  * `make run` (or just `./MotmotLite`)
+  * Run the tests (optional)
+    * You'll need `cram`, which you may be able to install
+      via your package manager ... or via the horrors of
+      Python / `pip`.
+    * `make test`
 
 ### Things that the Interpreter Can Do
 
