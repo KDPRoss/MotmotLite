@@ -29,8 +29,6 @@ open Util
 
 open Env.Convenience
 
-let _ = ( TopLevelSyntax.TLExp ( SurfaceSyntax.EVar [ "x" ] ) )
-
 let typCnsKndEnv    = ( smashEnvs  [ Typing.baseKindEnv   SurfaceParser.knd ; Primitives.primKindEnv   SurfaceParser.knd ] ; )
 
 let expCnsTypEnv    = ( Typing.baseTermConsEnv    (
@@ -114,10 +112,11 @@ let processCodeFile   ( f : string ) : unit =
                  StringSet.to_list )
           in let s = ( xs &>
                  List.sort ~compare:Stdlib.compare @>
-                 concatMap  ( around "`" "`" ) ", " ) in
-      if ( List.length xs > 0 )
-         then ( print_endline ( "Successfully loaded `" -- f -- "`; created bindings " -- s -- "." ) )
-         else ( print_endline ( "Successfully loaded `" -- f -- "`, but created no bindings." ) ) ) with
+                 concatMap  ( around "`" "`" ) ", " )
+          in let _ = ( if ( List.length xs > 0 )
+                  then ( print_endline ( "Successfully loaded `" -- f -- "`; created bindings " -- s -- "." ) )
+                  else ( print_endline ( "Successfully loaded `" -- f -- "`, but created no bindings." ) ) ) in
+      () ) with
   | e -> ( let _ = ( stType  := stTypeOld   )
              in let _ = ( stTerm  := stTermOld   )
              in let _ = ( print_endline "(Restored state.)" ) in
@@ -138,20 +137,23 @@ let resetState  () =
 
 let _ =
   ( let _ = ( Sys.command "clear" )
-      in let _ = ( print_endline "Welcome to MotmotLite" )
-      in let _ = ( print_endline "Copyright 2023, K.D.P.Ross <KDPRoss@gmail.com>" )
-      in let _ = ( print_newline () )
-      in let _ = ( print_endline "'It's about 20% as good as Motmot" )
-      in let _ = ( print_endline " with a code-base only 9% the size;" )
-      in let _ = ( print_endline " calibrate expectations accordingly.'" )
-      in let _ = ( print_newline () )
-      in let _ = ( print_endline "Enter:" )
-      in let _ = ( print_endline "- a binding / expression, e.g.:" )
-      in let _ = ( print_endline "  - `x : Num = 5`" )
-      in let _ = ( print_endline "  - `2 + 3`" )
-      in let _ = ( print_endline "- `:file {filepath}` (to load a file)" )
-      in let _ = ( print_endline "- `:reset`           (to reset the interpreter)" )
-      in let _ = ( print_endline "- `:quit`            (to exit)" )
+      in let banner = [
+                      "Welcome to MotmotLite" ;
+                      "Copyright 2023, K.D.P.Ross <KDPRoss@gmail.com>" ;
+                      "" ;
+                      "'It's about 20% as good as Motmot" ;
+                      " with a code-base only 9% the size;" ;
+                      " calibrate expectations accordingly.'" ;
+                      "" ;
+                      "Enter:" ;
+                      "- a binding / expression, e.g.:" ;
+                      "  - `x : Num = 5`" ;
+                      "  - `2 + 3`" ;
+                      "- `:file {filepath}` (to load a file)" ;
+                      "- `:reset`           (to reset the interpreter)" ;
+                      "- `:quit`            (to exit)" ;
+                    ]
+      in let _ = ( List.iter ~f:print_endline banner )
       in let _ = ( resetState  () )
       in let _ = ( print_endline "(Protip: Type the name of one of these bindings to see its type!)" ) in
   let rec loop () = ( try ( let _ = ( print_string "\n#> " )

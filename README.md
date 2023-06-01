@@ -14,11 +14,10 @@ ChatGPT describes MotmotLite:[^0]
 
 > Motmot[Lite] is a theoretical language that resembles a
 > simplified form of Haskell, with notable aspects of other
-> functional languages like ML and dependently-typed languages
-> like Agda or Idris. It includes some unique characteristics
-> and syntax, and it is generally meant to illustrate concepts
-> related to type systems, pattern matching, and lambda
-> calculus.
+> functional languages like ML ... It includes some unique
+> characteristics and syntax, and it is generally meant to
+> illustrate concepts related to type systems, pattern
+> matching, and lambda calculus.
 
 [^0]: The views of ChatGPT may not reflect those of
       OpenAI ... or anyone else. Neither Motmot nor
