@@ -1,8 +1,8 @@
 Tests for MotmotLite.
 
 Loading some code is about the most testing that we can do!
-  $ echo -e ":file $TESTDIR/Demo.mot\n:quit\n" | $TESTDIR/MotmotLite
-  \x1b[H\x1b[JWelcome to MotmotLite (esc)
+  $ echo -e ":file $TESTDIR/Demo.mot\n:quit\n" | $TESTDIR/MotmotLite | grep -v 'Ought to load' | grep -v 'lines from'
+  * (glob)
   Copyright 2023, K.D.P.Ross <KDPRoss@gmail.com>
   
   'It's about 20% as good as Motmot
@@ -20,8 +20,6 @@ Loading some code is about the most testing that we can do!
   The following bindings are defined: `*`, `+`, `-`, `/`, `::`, `<`, `<+>`, `<->`, `<<`, `<>`, `<|`, `=/=`, `=<`, `==`, `>`, `>+>`, `>=`, `>>`, `id`, `list->map`, `map->list`, `not`, `|->`, `|>`
   (Protip: Type the name of one of these bindings to see its type!)
   
-  #> Ought to load `/home/royal/royal/projects/motmot-lite/dist/Demo.mot`.
-  Read 208 lines from `/home/royal/royal/projects/motmot-lite/dist/Demo.mot`.
   Processing `2 + 3`.
   Parsed: `2 + 3`.
   Has type: `Num`.
@@ -247,6 +245,6 @@ Loading some code is about the most testing that we can do!
   Has type: `Bool`.
   Value: `True`.
   
-  Successfully loaded `/home/royal/royal/projects/motmot-lite/dist/Demo.mot`; created bindings `fib-memo`, `fib-naive`, `map-cps`, `map-naive`, `poly-pair`.
+  Successfully loaded * created bindings `fib-memo`, `fib-naive`, `map-cps`, `map-naive`, `poly-pair`. (glob)
   
   #> Goodbye!

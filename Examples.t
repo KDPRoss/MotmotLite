@@ -1,8 +1,8 @@
 Tests for MotmotLite.
 
 Loading some code is about the most testing that we can do!
-  $ echo -e ":file $TESTDIR/Examples.mot\n:quit\n" | $TESTDIR/MotmotLite
-  \x1b[H\x1b[JWelcome to MotmotLite (esc)
+  $ echo -e ":file $TESTDIR/Examples.mot\n:quit\n" | $TESTDIR/MotmotLite | grep -v 'Ought to load' | grep -v 'lines from'
+  * (glob)
   Copyright 2023, K.D.P.Ross <KDPRoss@gmail.com>
   
   'It's about 20% as good as Motmot
@@ -20,8 +20,6 @@ Loading some code is about the most testing that we can do!
   The following bindings are defined: `*`, `+`, `-`, `/`, `::`, `<`, `<+>`, `<->`, `<<`, `<>`, `<|`, `=/=`, `=<`, `==`, `>`, `>+>`, `>=`, `>>`, `id`, `list->map`, `map->list`, `not`, `|->`, `|>`
   (Protip: Type the name of one of these bindings to see its type!)
   
-  #> Ought to load `/home/royal/royal/projects/motmot-lite/dist/Examples.mot`.
-  Read 213 lines from `/home/royal/royal/projects/motmot-lite/dist/Examples.mot`.
   Processing `2 + 3`.
   Parsed: `2 + 3`.
   Has type: `Num`.
@@ -309,6 +307,6 @@ Loading some code is about the most testing that we can do!
   Value; `<fun>`.
   Binding `fib-memo''` has been created.
   
-  Successfully loaded `/home/royal/royal/projects/motmot-lite/dist/Examples.mot`; created bindings `concat`, `f`, `fac`, `fff`, `fib`, `fib-memo`, `fib-memo'`, `fib-memo''`, `giggles`, `mapNum`, `mapNum2`, `mapNum3`, `mapNum4`, `mapPoly`, `poly-pair`, `reverse`, `run-tests`.
+  Successfully loaded * created bindings `concat`, `f`, `fac`, `fff`, `fib`, `fib-memo`, `fib-memo'`, `fib-memo''`, `giggles`, `mapNum`, `mapNum2`, `mapNum3`, `mapNum4`, `mapPoly`, `poly-pair`, `reverse`, `run-tests`. (glob)
   
   #> Goodbye!

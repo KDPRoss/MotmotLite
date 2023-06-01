@@ -136,7 +136,11 @@ let resetState  () =
   () )
 
 let _ =
-  ( let _ = ( Sys.command "clear" )
+  ( let _ = ( match ( Sys.getenv_opt "TERM" ) with
+                    | Some _ -> ( "clear" &>
+                                  Sys.command @>
+                                  ignore )
+                    | None -> ( () ) )
       in let banner = [
                       "Welcome to MotmotLite" ;
                       "Copyright 2023, K.D.P.Ross <KDPRoss@gmail.com>" ;
