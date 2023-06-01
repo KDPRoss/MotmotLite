@@ -45,7 +45,7 @@ ChatGPT describes MotmotLite:[^0]
     * `opam switch create ocaml-base-compiler.4.14.1`
     * `opam switch ocaml-base-compiler.4.14.1`
     * `eval $(opam env)`
-    * `opam install core extlib str zarith`
+    * `opam install core extlib zarith`
       * You *may* need to install some system packages
         (e.g., GMP); you're on your own there!
 * Build it: `make build`
