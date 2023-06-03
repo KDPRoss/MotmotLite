@@ -135,7 +135,16 @@ let resetState  () =
             print_endline ) in
   () )
 
-let _ =
+let kernelModeQ  () =
+  ( Sys.argv &>
+    Array.to_list @>
+    List.exists ~f: (
+      ( = ) "--kernel"
+    ) )
+
+let kernelMarker  = ( "<<<KERNEL-FINISHED>>>" )
+
+let replMain  () =
   ( let _ = ( match ( Sys.getenv_opt "TERM" ) with
                     | Some _ -> ( "clear" &>
                                   Sys.command @>
@@ -179,4 +188,19 @@ let _ =
                     | _ -> ( let _ = ( print_endline "You've made a blunder." ) in
                            loop () ) ) in
   loop () )
+
+let rec kernelMain  () =
+  ( try ( let s = ( read_line () )
+          in let _ = ( processInput  s )
+          in let _ = ( print_endline kernelMarker  ) in
+      kernelMain  () ) with
+  | _ -> ( let _ = ( print_endline "<ERROR>" )
+             in let _ = ( print_endline kernelMarker  ) in
+         kernelMain  () ) )
+
+let _ =
+  ( let kernel = ( kernelModeQ  () ) in
+  if ( kernel )
+     then ( kernelMain  () )
+     else ( replMain  () ) )
 
