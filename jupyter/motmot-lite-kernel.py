@@ -38,7 +38,9 @@ class MotmotLiteKernel(Kernel):
 
     def do_execute(self, code, silent, store_history = True, user_expressions = None, allow_stdin = False):
         try:
-            out = self.one(' '.join(code.split('\n'))).rstrip(' \n')
+            # This is sloppy!
+            lines = [ l for l in code.split('\n') if '--' not in l ]
+            out = self.one(' '.join(lines)).rstrip(' \n')
         except Exception as e:
             out = '(Kernel failure: `' + str(e) + '`)'
         stream_content = {'name': 'stdout', 'text': out}

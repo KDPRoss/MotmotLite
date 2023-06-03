@@ -40,44 +40,49 @@ let stType  = ( ref Prelude.minPreludeType   )
 
 let stTerm  = ( ref Prelude.minPreludeTerm   )
 
-let processExp  ( e : SurfaceSyntax.exp ) : unit =
+let processExp  kernelMode  ( e : SurfaceSyntax.exp ) : unit =
   ( let e' = ( SurfaceSyntax.coreOfSurfaceExp    id e )
-      in let _ = ( print_endline ( "Parsed: `" -- CoreLineariser.showExp  e' -- "`." ) )
+      in let _ = ( if ( not kernelMode  )
+               then ( print_endline ( "Parsed: `" -- CoreLineariser.showExp  e' -- "`." ) ) )
       in let t = ( Typing.typOf  CoreLineariser.showTyp  typCnsKndEnv    Env.empty expCnsTypEnv    !stType  e' )
       in let _ = ( print_endline ( "Has type: `" -- CoreLineariser.showTyp  t -- "`." ) )
       in let e'' = ( Bindings.restructureBindingsExp   e' )
-      in let _ = ( if ( e'' <> e' )
+      in let _ = ( if ( not kernelMode  && e'' <> e' )
                then ( print_endline ( "Restructured: `" -- CoreLineariser.showExp  e'' -- "`." ) ) )
       in let v = ( Eval.eval !stTerm  e'' )
       in let _ = ( print_endline ( "Value: `" -- CoreLineariser.showExp  v -- "`." ) ) in
   () )
 
-let processBind  ( x, t, e ) : unit =
-  ( let _ = ( match ( !stType  ==> x ) with
-            | Some _ -> ( let _ = ( print_endline ( "Binding `" -- x -- "` already defined!" ) ) in
-                        raise Typing.TypeError )
-            | None -> ( () ) )
+let processBind  kernelMode  ( x, t, e ) : unit =
+  ( let _ = ( if ( not kernelMode  )
+               then ( match ( !stType  ==> x ) with
+                    | Some _ -> ( let _ = ( print_endline ( "Binding `" -- x -- "` already defined!" ) ) in
+                                raise Typing.TypeError )
+                    | None -> ( () ) ) )
       in let t' = ( SurfaceSyntax.coreOfSurfaceTyp    id t )
       in let e' = ( SurfaceSyntax.coreOfSurfaceExp    id e )
       in let e'' = ( Bindings.restructureBindingsExp   e' )
-      in let _ = ( print_endline ( "Parsed: `" -- x -- " : " -- CoreLineariser.showTyp  t' -- " = " -- CoreLineariser.showExp  e' ) )
+      in let _ = ( if ( not kernelMode  )
+               then ( print_endline ( "Parsed: `" -- x -- " : " -- CoreLineariser.showTyp  t' -- " = " -- CoreLineariser.showExp  e' ) ) )
       in let t'' = ( let g = ( !stType  <+> x @-> t' ) in
             Typing.typOf  CoreLineariser.showTyp  typCnsKndEnv    Env.empty expCnsTypEnv    g e' )
       in let _ = ( if ( not ( Typing.typEquiv  CoreLineariser.showTyp  typCnsKndEnv    Env.empty t'' t' ) )
                then ( let _ = ( print_endline "Annotated type does not match expression's type." ) in
                     raise Typing.TypeError ) )
-      in let _ = ( print_endline ( "Has type: `" -- CoreLineariser.showTyp  t'' -- "`." ) )
+      in let _ = ( if ( not kernelMode  )
+               then ( print_endline ( "Has type: `" -- CoreLineariser.showTyp  t'' -- "`." ) ) )
       in let _ = ( stType  := !stType  <+> x @-> t' )
       in let v = ( Eval.eval !stTerm  Syntax. ( ELet ( [ ( PVar ( x, t' ) , e'' ) ] , EVar x ) ) )
-      in let _ = ( print_endline ( "Value; `" -- CoreLineariser.showExp  v -- "`." ) )
+      in let _ = ( if ( not kernelMode  )
+               then ( print_endline ( "Value; `" -- CoreLineariser.showExp  v -- "`." ) ) )
       in let _ = ( stTerm  := !stTerm  <+> x @-> v )
       in let _ = ( print_endline ( "Binding `" -- x -- "` has been created." ) ) in
   () )
 
-let processInput  ( s : string ) : unit =
+let processInput  kernelMode  ( s : string ) : unit =
   ( match ( SurfaceParser.tlExp  s ) with
-  | TopLevelSyntax.TLExp e -> ( processExp  e )
-  | TopLevelSyntax.TLBind xte -> ( processBind  xte ) )
+  | TopLevelSyntax.TLExp e -> ( processExp  kernelMode  e )
+  | TopLevelSyntax.TLBind xte -> ( processBind  kernelMode  xte ) )
 
 let processCodeFile   ( f : string ) : unit =
   ( let stTypeOld   = ( !stType  )
@@ -105,7 +110,7 @@ let processCodeFile   ( f : string ) : unit =
                         Str.global_replace ( Str.regexp "[ \t]+" ) " "
                       ) )
       in let one s = ( let _ = ( print_endline ( "Processing `" -- s -- "`." ) )
-                        in let _ = ( processInput  s ) in
+                        in let _ = ( processInput  false s ) in
                     print_newline () ) in
   try ( let _ = ( List.iter ~f:one ss' )
           in let xs = ( StringSet.diff ( Env.domain !stType  ) ( Env.domain stTypeOld   ) &>
@@ -183,7 +188,7 @@ let replMain  () =
                         | [ ":r" ]
                         | [ ":reset" ] -> ( let _ = ( resetState  () ) in
                                              loop () )
-                        | _ -> ( let _ = ( processInput  s ) in
+                        | _ -> ( let _ = ( processInput  false s ) in
                                              loop () ) ) with
                     | _ -> ( let _ = ( print_endline "You've made a blunder." ) in
                            loop () ) ) in
@@ -191,7 +196,7 @@ let replMain  () =
 
 let rec kernelMain  () =
   ( try ( let s = ( read_line () )
-          in let _ = ( processInput  s )
+          in let _ = ( processInput  true s )
           in let _ = ( print_endline kernelMarker  ) in
       kernelMain  () ) with
   | _ -> ( let _ = ( print_endline "<ERROR>" )
