@@ -31,7 +31,7 @@ open ParserCombinators
 
 module Out = OutputManager
 
-exception UserFailure of Syntax.exp
+exception UserFailure of ( string * Syntax.exp )
 
 let numP  : Q.t parse =
   ( let postProcess  s = ( match ( Str.split ( Str.regexp_string "." ) s ) with

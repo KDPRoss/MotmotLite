@@ -33,7 +33,7 @@ open Syntax
 
 open PreludeUtil
 
-let userFailureInvalidArg    _ es _ = ( raise ( Primitives.UserFailure ( listToInternal   es ) ) )
+let userFailureInvalidArg    s es _ = ( raise ( Primitives.UserFailure ( s, listToInternal   es ) ) )
 
 let twoArgGenCore    ( proj1 : exp -> 'a ) ( proj2 : exp -> 'b ) ( inj : 'c -> exp ) ( core : 'a -> 'b -> 'c ) ( _eval : evalTyp ) ( _g : exp Env.t ) v1 v2 =
   ( let n1 = ( proj1 v1 )
@@ -53,7 +53,7 @@ let subCore  = ( twoArgSimpCore    numPack  Q. ( - ) )
 let mulCore  = ( twoArgSimpCore    numPack  Q. ( * ) )
 
 let divCore  = ( let divCore  x y = ( if ( Q.zero = y )
-                                        then ( userFailureInvalidArg    "Division by zero." [ EPrim ( Num x ) ; EPrim ( Num y ) ] None )
+                                        then ( userFailureInvalidArg    "Division by zero" [ EPrim ( Num x ) ; EPrim ( Num y ) ] None )
                                         else ( Q. ( x / y ) ) ) in
                   twoArgSimpCore    numPack  divCore  )
 
@@ -64,14 +64,14 @@ let eqCore  _ _ v1 v2 =
               | EPrim _
               | EList _
               | EMap _ -> ( () )
-              | _ -> ( userFailureInvalidArg    "Incomparable syntactic class." [ v1 ; v2 ] None ) )
+              | _ -> ( userFailureInvalidArg    "Incomparable syntactic class" [ v1 ; v2 ] None ) )
       in let _ = ( map ~f:check [ v1 ; v2 ] ) in
   boolToInternal   ( v1 === v2 ) )
 
 let compareCoreGen   fNum  ( _eval : evalTyp ) ( _g : exp Env.t ) v1 v2 =
   ( match ( ( v1, v2 ) ) with
   | ( EPrim ( Num n1 ) , EPrim ( Num n2 ) ) -> ( boolToInternal   ( fNum  n1 n2 ) )
-  | _ -> ( userFailureInvalidArg    "Incomparable syntactic class." [ v1 ; v2 ] None ) )
+  | _ -> ( userFailureInvalidArg    "Incomparable syntactic class" [ v1 ; v2 ] None ) )
 
 let ltCore  = ( compareCoreGen   Q.lt )
 
@@ -85,24 +85,24 @@ let mapAddCore   _ _ e1 e2 =
   ( match ( ( e1, e2 ) ) with
   | ( EMap m, ETup [ k ; v ] ) -> ( let m' = ( PolyMap.remove m k ) in
                                 EMap ( PolyMap.add_exn m' ~key:k ~data:v ) )
-  | ( m, kv ) -> ( dynFail  "Invalid map / pair." [ m ; kv ] ) )
+  | ( m, kv ) -> ( dynFail  "Invalid map / pair" [ m ; kv ] ) )
 
 let mapRemCore   _ _ e1 k =
   ( match ( e1 ) with
   | EMap m -> ( EMap ( PolyMap.remove m k ) )
-  | v -> ( dynFail  "Invalid map." [ v ] ) )
+  | v -> ( dynFail  "Invalid map" [ v ] ) )
 
 let mapFindCore   _ _ e1 k =
   ( match ( e1 ) with
   | EMap m -> ( match ( PolyMap.find m k ) with
               | Some v -> ( ECVal ( "Just" , [ v ] ) )
               | None -> ( ECVal ( "Nothing" , [] ) ) )
-  | v -> ( dynFail  "Invalid map." [ v ] ) )
+  | v -> ( dynFail  "Invalid map" [ v ] ) )
 
 let makeMapCore   _ _ e =
   ( let one = ( function
                      | ETup [ x ; y ] -> ( ( x, y ) )
-                     | v -> ( dynFail  "Bad tuple in `makeMapCore`." [ v ] ) )
+                     | v -> ( dynFail  "Bad tuple in `makeMapCore`" [ v ] ) )
       in let add m ( k, v ) = ( match ( PolyMap.find m k ) with
                      | Some _ -> ( m )
                      | None -> ( PolyMap.add_exn m ~key:k ~data:v ) )
@@ -121,7 +121,7 @@ let fromMapCore   _ _ e =
                   fun ( k, v ) ->
                     ETup [ k ; v ]
                 ) @> listToInternal   )
-  | v -> ( dynFail  "Invalid map." [ v ] ) )
+  | v -> ( dynFail  "Invalid map" [ v ] ) )
 
 let minPreludeTerm   =
   ( let parseExp  = ( SurfaceParser.expExt  @>

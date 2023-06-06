@@ -112,5 +112,3 @@ let boolToInternal   : bool -> exp =
   | true -> ( ECVal ( "True" , [] ) )
   | false -> ( ECVal ( "False" , [] ) ) )
 
-let userFailure  ( v : exp ) : 'a = ( raise ( UserFailure v ) )
-

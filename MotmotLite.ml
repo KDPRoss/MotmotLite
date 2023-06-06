@@ -79,6 +79,38 @@ let processBind  kernelMode  ( x, t, e ) : unit =
       in let _ = ( print_endline ( "Binding `" -- x -- "` has been created." ) ) in
   () )
 
+let showParseError   ( s : string ) ( i : int ) : unit =
+  ( let wide = ( 120 ) in
+  let rec loop i = ( function
+                   | [] -> ( () )
+                   | _ :: _ as xs -> ( let ( xs, ys ) = ( List.split_n xs wide )
+                                         in let _ = ( xs &>
+                                                      String.concat ~sep: "" @>
+                                                      print_endline )
+                                         in let i = ( match () with
+                                                    | _ when i < 0 -> ( i )
+                                                    | _ when i >= wide -> ( i - wide )
+                                                    | _ -> ( let _ = ( print_endline ( String.make i '_' -- "^" ) ) in
+                                                                   -1 ) ) in
+                                     loop i ys ) ) in
+  s &>
+    Str.split ( Str.regexp "" ) @>
+    loop i )
+
+let handleError  e : 'a =
+  ( match ( e ) with
+  | ParserCombinators.ParseFailure ( s, i ) -> ( let _ = ( print_endline "Parse failure:" )
+                                                 in let _ = ( showParseError   s i ) in
+                                             () )
+  | Primitives.UserFailure ( s, e ) -> ( print_endline ( "User-level failure: " -- s -- ": " -- CoreLineariser.showExp  e ) )
+  | Typing.TypeAbort
+  | Typing.TypeError -> ( print_endline "Type error." )
+  | _ -> ( let _ = ( print_endline "Something went wrong!" )
+                                                 in let _ = ( e &>
+                                                       Printexc.to_string @>
+                                                       print_endline ) in
+                                             () ) )
+
 let processInput  kernelMode  ( s : string ) : unit =
   ( match ( SurfaceParser.tlExp  s ) with
   | TopLevelSyntax.TLExp e -> ( processExp  kernelMode  e )
@@ -123,8 +155,7 @@ let processCodeFile   ( f : string ) : unit =
                   else ( print_endline ( "Successfully loaded `" -- f -- "`, but created no bindings." ) ) ) in
       () ) with
   | e -> ( let _ = ( stType  := stTypeOld   )
-             in let _ = ( stTerm  := stTermOld   )
-             in let _ = ( print_endline "(Restored state.)" ) in
+             in let _ = ( stTerm  := stTermOld   ) in
          raise e ) )
 
 let resetState  () =
@@ -190,7 +221,8 @@ let replMain  () =
                                              loop () )
                         | _ -> ( let _ = ( processInput  false s ) in
                                              loop () ) ) with
-                    | _ -> ( let _ = ( print_endline "You've made a blunder." ) in
+                    | e -> ( let _ = ( handleError  e )
+                               in let _ = ( print_endline "You've made a blunder." ) in
                            loop () ) ) in
   loop () )
 
