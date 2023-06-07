@@ -71,14 +71,16 @@ ChatGPT describes MotmotLite:[^0]
 | Available in stores                   | [ ]    | [X]        |
 | ChatGPT-approved                      | [X]    | [X]        |
 | Created by KDP                        | [X]    | [X]        |
+| Dockerised                            | [ ]    | [X]        |
 | Enormous out-of-the-box libraries     | [X]    | [X]        |
+| Extensive caching capabilities        | [X]    | [ ]        |
 | Free like beer                        | [ ]    | [X] [^1]   |
 | Has Emacs mode                        | [X]    | [X] [^2]   |
 | Has 100+kLOC implemented in it        | [X]    | [ ]        |
 | Has dozens of LOC implemented in it   | [ ]    | [X]        |
 | Implemented in NG                     | [X]    | [X] [^3]   |
 | Is a staggering work of beauty        | [?]    | [?]        |
-| Jupyter kernel support                | [X]    | [ ]        |
+| Jupyter kernel support                | [X]    | [X]        |
 | Open source                           | [ ]    | [X]        |
 | Pipe mode (`stdin` -> `stdout`)       | [X]    | [ ]        |
 | REPL -> obj-level querying            | [X]    | [ ]        |
@@ -129,7 +131,7 @@ ChatGPT describes MotmotLite:[^0]
 [^5]: These are purely-functional arrays, based on Okasaki's
       work; as such they're really more 'arrays' than arrays
       (i.e., they don't support constant-time operations but
-      log-time ones.)
+      log-time ones.).
 
 [^6]: Trees are a legacy of Motmot's Tanager-based heritage.
       They are 'semi-typed', arity-polymorphic ADTs that
@@ -139,45 +141,46 @@ ChatGPT describes MotmotLite:[^0]
 
 ### Language Features
 
-|                                            | Motmot | MotmotLite |
-|--------------------------------------------|--------|------------|
-| Complicated file loader                    | [X]    | [ ]        |
-| Direct-style recursive evaluator           | [X]    | [X]        |
-| Extensive strict / lazy binding forms      | [X]    | [X]        |
-| Error handling [^7]                        | [X]    | [ ]        |
-| Hacked-up simple file loader               | [ ]    | [X]        |
-| Limited-context type inference             | [X]    | [X]        |
-| Linear parser                              | [X]    | [X]        |
-| Modules / namespaces                       | [X]    | [ ]        |
-| Parser combinators                         | [X]    | [ ]        |
-| Partial-function composition               | [X]    | [X]        |
-| Recursive bindings                         | [X]    | [X]        |
-| Short-form syntax (e.g., type abstraction) | [X]    | [ ]        |
-| Sound type system                          | [ ]    | [X]        |
-| System-Fω typing                           | [X]    | [X]        |
-| Two-dimensional parser                     | [X]    | [ ]        |
-| Type abbreviations                         | [X]    | [ ]        |
-| User-defined data types                    | [X]    | [ ]        |
-| User-defined mixfix syntax                 | [X]    | [ ]        |
+|                                                | Motmot | MotmotLite |
+|------------------------------------------------|--------|------------|
+| Bottom-up-only type inference                  | [X]    | [X]        |
+| Complicated file loader                        | [X]    | [ ]        |
+| Direct-style recursive evaluator               | [X]    | [X]        |
+| Extensive strict / lazy binding forms          | [X]    | [X]        |
+| Error handling [^7]                            | [X]    | [ ]        |
+| Hacked-up simple file loader                   | [ ]    | [X]        |
+| Linear parser                                  | [X]    | [X]        |
+| Modules / namespaces                           | [X]    | [ ]        |
+| Monad syntax support (e.g., `do`, `>>=`)       | [X]    | [ ]        |
+| Parser combinators                             | [X]    | [ ]        |
+| Partial-function composition                   | [X]    | [X]        |
+| Recursive bindings                             | [X]    | [X]        |
+| Short-form syntax (e.g., for type abstraction) | [X]    | [ ]        |
+| Sound type system                              | [ ]    | [X]        |
+| System-Fω typing                               | [X]    | [X]        |
+| Two-dimensional parser                         | [X]    | [ ]        |
+| Type abbreviations                             | [X]    | [ ]        |
+| User-defined data types                        | [X]    | [ ]        |
+| User-defined mixfix syntax                     | [X]    | [ ]        |
 
 [^7]: Motmot's `try`-`recover` is similar to exception
       handling in other languages but subtly distinct.
 
 ### Pattern Styles
 
-|                      | Motmot | MotmotLite |
-|----------------------|--------|------------|
-| Conjunction          | [X]    | [X]        |
-| Data constructor     | [X]    | [X]        |
-| Disjunction          | [X]    | [ ]        |
-| Expression           | [X]    | [X]        |
-| Functional           | [X]    | [ ]        |
-| Irrefutable variable | [X]    | [X]        |
-| Negation             | [X]    | [ ]        |
-| Predicate            | [X]    | [X]        |
-| Record               | [X]    | [ ]        |
-| Tuple                | [X]    | [X]        |
-| Wildcard             | [X]    | [X]        |
+|                  | Motmot | MotmotLite |
+|------------------|--------|------------|
+| Conjunction      | [X]    | [X]        |
+| Data constructor | [X]    | [X]        |
+| Disjunction      | [X]    | [ ]        |
+| Expression       | [X]    | [X]        |
+| Functional       | [X]    | [ ]        |
+| Negation         | [X]    | [ ]        |
+| Predicate        | [X]    | [X]        |
+| Record           | [X]    | [ ]        |
+| Tuple            | [X]    | [X]        |
+| Variable         | [X]    | [X]        |
+| Wildcard         | [X]    | [X]        |
 
 ## Further Links / Resources
 
