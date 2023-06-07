@@ -25,8 +25,6 @@ following terms:
  * Copyright 2007-2023    *
  *             K.D.P.Ross *)
 
-open Core.List
-
 module OldString = String
 
 module List = Core.List
@@ -35,9 +33,17 @@ module String = Core.String
 
 module PolyMap = Core.Map.Poly
 
-module PolySet = Core.Set.Poly
+module StringMap = struct
+  include Core.Map
+  include Core.String.Map end
 
-module StringSet = Core.String.Set
+module PolySet = struct
+  include Core.Set
+  include Core.Set.Poly end
+
+module StringSet = struct
+  include Core.Set
+  include Core.String.Set end
 
 type ( 'a, 'b ) either = Left of 'a
                      | Right of 'b
@@ -74,19 +80,17 @@ let stringOfChar   : char -> string = ( String.make 1 )
 
 let trimString  : string -> string = ( OldString.trim )
 
-let concatMap  f s = ( map ~f:f @> String.concat ~sep:s )
+let concatMap  f s = ( List.map ~f:f @> String.concat ~sep:s )
 
 let around l r s = ( l -- s -- r )
 
 let parenthesise = ( around "(" ")" )
 
 let fold1 ~f:f xs = ( match ( xs ) with
-                                                      | x :: xs -> ( fold ~f:f ~init:x xs )
+                                                      | x :: xs -> ( List.fold ~f:f ~init:x xs )
                                                       | [] -> ( failwith "fold1 argument error" ) )
 
-let nub xs = ( xs &>
-                                                        PolySet.of_list @>
-                                                        PolySet.elements )
+let nub xs = ( PolySet.stable_dedup_list xs )
 
 let readFile  f = ( let is = ( open_in f )
                           in let lines = ( Std.input_list is )

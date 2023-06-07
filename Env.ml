@@ -31,7 +31,7 @@ open List
 
 module Out = OutputManager
 
-module Map = Core.String.Map
+module Map = StringMap
 
 type 'a t = 'a Map.t
 
