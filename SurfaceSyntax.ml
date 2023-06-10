@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 module Out = OutputManager
 
 type qName = string list
@@ -96,11 +94,11 @@ let rec coreOfSurfaceTyp    ( normTyp  : Syntax.typ -> Syntax.typ ) : typ -> Syn
   ( let coreOfSurfaceTyp    t = ( coreOfSurfaceTyp    normTyp  t ) in
   function
   | TVar x -> ( Syntax.TVar x )
-  | TAbs ( xs, k, t ) -> ( fold_right ~f: ( fun x t -> Syntax.TAbs ( x, k, t ) ) ~init: ( coreOfSurfaceTyp    t ) xs )
-  | TCVal ( c, ts ) -> ( Syntax.TCVal ( fromQName   c, map ~f:coreOfSurfaceTyp    ts ) )
+  | TAbs ( xs, k, t ) -> ( List.fold_right ~f: ( fun x t -> Syntax.TAbs ( x, k, t ) ) ~init: ( coreOfSurfaceTyp    t ) xs )
+  | TCVal ( c, ts ) -> ( Syntax.TCVal ( fromQName   c, List.map ~f:coreOfSurfaceTyp    ts ) )
   | TArr ( t, t' ) -> ( Syntax.TArr ( coreOfSurfaceTyp    t, coreOfSurfaceTyp    t' ) )
   | TApp ( t, t' ) -> ( Syntax.TApp ( coreOfSurfaceTyp    t, coreOfSurfaceTyp    t' ) )
-  | TTpl ts -> ( Syntax.TTpl ( map ~f:coreOfSurfaceTyp    ts ) )
+  | TTpl ts -> ( Syntax.TTpl ( List.map ~f:coreOfSurfaceTyp    ts ) )
   | TBrackets t -> ( coreOfSurfaceTyp    t ) )
 
 let rec coreOfSurfaceExp    ( normTyp  : Syntax.typ -> Syntax.typ ) : exp -> Syntax.exp =
@@ -117,7 +115,7 @@ let rec coreOfSurfaceExp    ( normTyp  : Syntax.typ -> Syntax.typ ) : exp -> Syn
                                                              in let y = ( Typing.freshVar  () ) in
                                                          Syntax.EAbs ( [ PVar ( x, TCVal ( "Bool" , [] ) ) ; PVar ( y, TCVal ( "Bool" , [] ) ) ] , orCore  ( EVar x ) ( EVar y ) ) )
   | EVar x -> ( Syntax.EVar ( fromQName   x ) )
-  | ETAbs ( xs, k, e ) -> ( fold_right ~f: ( fun x e -> Syntax.ETAbs ( x, k, e ) ) ~init: ( coreOfSurfaceExp    e ) xs )
+  | ETAbs ( xs, k, e ) -> ( List.fold_right ~f: ( fun x e -> Syntax.ETAbs ( x, k, e ) ) ~init: ( coreOfSurfaceExp    e ) xs )
   | ETAbsNoBkt ( x, k, e ) -> ( Syntax.ETAbs ( x, k, coreOfSurfaceExp    e ) )
   | EApp ( EApp ( EVar [ "and" ] , e ) , e' ) -> ( andCore  ( coreOfSurfaceExp    e ) ( coreOfSurfaceExp    e' ) )
   | EApp ( EApp ( EVar [ "or" ] , e ) , e' ) -> ( orCore  ( coreOfSurfaceExp    e ) ( coreOfSurfaceExp    e' ) )
@@ -133,18 +131,18 @@ let rec coreOfSurfaceExp    ( normTyp  : Syntax.typ -> Syntax.typ ) : exp -> Syn
   | ERSecImp ( e, EVar [ "or" ] )
   | ERSec ( e, EVar [ "or" ] , TCVal ( [ "Bool" ] , [] ) ) -> ( let y = ( Typing.freshVar  () ) in
                                                          Syntax. ( EAbs ( [ PVar ( y, TCVal ( "Bool" , [] ) ) ] , orCore  ( coreOfSurfaceExp    e ) ( EVar y ) ) ) )
-  | EAbs ( ps, e ) -> ( Syntax.EAbs ( map ~f:coreOfSurfacePat    ps, coreOfSurfaceExp    e ) )
+  | EAbs ( ps, e ) -> ( Syntax.EAbs ( List.map ~f:coreOfSurfacePat    ps, coreOfSurfaceExp    e ) )
   | EApp ( e, e' ) -> ( Syntax.EApp ( coreOfSurfaceExp    e, coreOfSurfaceExp    e' ) )
-  | ETup es -> ( Syntax.ETup ( map ~f:coreOfSurfaceExp    es ) )
+  | ETup es -> ( Syntax.ETup ( List.map ~f:coreOfSurfaceExp    es ) )
   | EBrackets e -> ( coreOfSurfaceExp    e )
-  | EFcmp es -> ( Syntax.EFcmp ( map ~f:coreOfSurfaceExp    es ) )
+  | EFcmp es -> ( Syntax.EFcmp ( List.map ~f:coreOfSurfaceExp    es ) )
   | ECons x -> ( Syntax.ECVal ( fromQName   x, [] ) )
   | EPrim p -> ( Syntax.EPrim p )
-  | EWhere ( e, bs ) -> ( Syntax.ELet ( map ~f: ( pairMap  coreOfSurfacePat    coreOfSurfaceExp    ) bs, coreOfSurfaceExp    e ) )
-  | EFun es -> ( EFcmp ( map ~f:coreOfSurfaceExp    es ) )
+  | EWhere ( e, bs ) -> ( Syntax.ELet ( List.map ~f: ( pairMap  coreOfSurfacePat    coreOfSurfaceExp    ) bs, coreOfSurfaceExp    e ) )
+  | EFun es -> ( EFcmp ( List.map ~f:coreOfSurfaceExp    es ) )
   | EAnn ( e, t ) -> ( Syntax. ( EApp ( ETApp ( var "id" , coreOfSurfaceTyp    t ) , coreOfSurfaceExp    e ) ) )
-  | ECaseOf ( es', es ) -> ( Syntax. ( fold ~f: ( fun e e' -> EApp ( e, e' ) ) ~init: ( EFcmp ( map ~f:coreOfSurfaceExp    es ) ) ( map ~f:coreOfSurfaceExp    es' ) ) )
-  | ETAppMany ( e, ts ) -> ( fold ~f: ( fun e t -> Syntax.ETApp ( e, coreOfSurfaceTyp    t ) ) ~init: ( coreOfSurfaceExp    e ) ts )
+  | ECaseOf ( es', es ) -> ( Syntax. ( List.fold ~f: ( fun e e' -> EApp ( e, e' ) ) ~init: ( EFcmp ( List.map ~f:coreOfSurfaceExp    es ) ) ( List.map ~f:coreOfSurfaceExp    es' ) ) )
+  | ETAppMany ( e, ts ) -> ( List.fold ~f: ( fun e t -> Syntax.ETApp ( e, coreOfSurfaceTyp    t ) ) ~init: ( coreOfSurfaceExp    e ) ts )
   | ELSec ( t, x, e ) -> ( let y = ( Typing.freshVar  () ) in
                                                          Syntax. ( EAbs ( [ PVar ( y, coreOfSurfaceTyp    t ) ] , coreOfSurfaceExp    ( EApp ( EApp ( x, EVar [ y ] ) , e ) ) ) ) )
   | ERSec ( e, x, t ) -> ( let y = ( Typing.freshVar  () ) in
@@ -152,8 +150,8 @@ let rec coreOfSurfaceExp    ( normTyp  : Syntax.typ -> Syntax.typ ) : exp -> Syn
   | ELSecImp ( x, e ) -> ( Syntax. ( EApp ( EApp ( var "flip" , coreOfSurfaceExp    x ) , coreOfSurfaceExp    e ) ) )
   | ERSecImp ( e, x ) -> ( Syntax.EApp ( coreOfSurfaceExp    x, coreOfSurfaceExp    e ) )
   | ENil t -> ( Syntax. ( ETApp ( ECVal ( "Nil" , [] ) , coreOfSurfaceTyp    t ) ) )
-  | EListLit es -> ( Syntax.EList ( map ~f:coreOfSurfaceExp    es ) )
-  | EMapLit ps -> ( Syntax. ( EApp ( var "list->map" , EList ( map ~f: ( fun ( k, v ) -> ETup [ coreOfSurfaceExp    k ; coreOfSurfaceExp    v ] ) ps ) ) ) ) )
+  | EListLit es -> ( Syntax.EList ( List.map ~f:coreOfSurfaceExp    es ) )
+  | EMapLit ps -> ( Syntax. ( EApp ( var "list->map" , EList ( List.map ~f: ( fun ( k, v ) -> ETup [ coreOfSurfaceExp    k ; coreOfSurfaceExp    v ] ) ps ) ) ) ) )
 
 and coreOfSurfacePat    ( normTyp  : Syntax.typ -> Syntax.typ ) : pat -> Syntax.pat =
   ( let coreOfSurfaceExp    e = ( coreOfSurfaceExp    normTyp  e )
@@ -164,11 +162,11 @@ and coreOfSurfacePat    ( normTyp  : Syntax.typ -> Syntax.typ ) : pat -> Syntax.
   | PAny t -> ( Syntax.PAny ( coreOfSurfaceTyp    t ) )
   | PVarNoBkt ( x, t )
   | PVar ( x, t ) -> ( Syntax.PVar ( x, coreOfSurfaceTyp    t ) )
-  | PCVal ( x, ts, ps ) -> ( Syntax.PCVal ( fromQName   x, map ~f:coreOfSurfaceTyp    ts, map ~f:coreOfSurfacePat    ps ) )
+  | PCVal ( x, ts, ps ) -> ( Syntax.PCVal ( fromQName   x, List.map ~f:coreOfSurfaceTyp    ts, List.map ~f:coreOfSurfacePat    ps ) )
   | PListCons ( p, p' ) -> ( Syntax.PCVal ( "Cons" , [] , [ coreOfSurfacePat    p ; coreOfSurfacePat    p' ] ) )
   | PNil t -> ( Syntax.PCVal ( "Nil" , [ coreOfSurfaceTyp    t ] , [] ) )
-  | PList ps -> ( Syntax. ( fold_right ~f: ( fun p ps -> PCVal ( "Cons" , [] , [ coreOfSurfacePat    p ; ps ] ) ) ~init: ( PCVal ( "Nil" , [] , [] ) ) ps ) )
-  | PTup ps -> ( Syntax.PTup ( map ~f:coreOfSurfacePat    ps ) )
+  | PList ps -> ( Syntax. ( List.fold_right ~f: ( fun p ps -> PCVal ( "Cons" , [] , [ coreOfSurfacePat    p ; ps ] ) ) ~init: ( PCVal ( "Nil" , [] , [] ) ) ps ) )
+  | PTup ps -> ( Syntax.PTup ( List.map ~f:coreOfSurfacePat    ps ) )
   | PBrackets p -> ( coreOfSurfacePat    p )
   | PConj ( p, p' ) -> ( Syntax.PConj ( coreOfSurfacePat    p, coreOfSurfacePat    p' ) )
   | PWhen ( e, mt ) -> ( let mt' = ( match ( mt ) with

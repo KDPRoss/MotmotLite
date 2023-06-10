@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 open Syntax
 
 open Primitives
@@ -49,7 +47,7 @@ let dynFail  ( s : string ) ( es : exp list ) : 'a =
            | _ -> ( "Dynamic failure: " -- s -- " with expressions context:" ) )
       in let _ = ( Out.error s' )
       in let _ = ( es &>
-             iter ~f: (
+             List.iter ~f: (
                CoreLineariser.showExp  @>
                ( -- ) "  " @>
                Out.error

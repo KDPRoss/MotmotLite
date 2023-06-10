@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 module Out = OutputManager
 
 type knd = KStar
@@ -86,69 +84,21 @@ let showPrim  : prim -> string =
                         Str.global_replace ( Str.regexp_string "/" ) " / " ) in
                 showRational  n ) )
 
-let rec standardise ( e : exp ) : exp =
-  ( match ( e ) with
-  | ETup es -> ( ETup ( map ~f:standardise es ) )
-  | ECVal ( c, es ) -> ( ECVal ( c, map ~f:standardise es ) )
-  | EMap ps -> ( let ps' = ( ps &>
-                                 PolyMap.to_alist @>
-                                 map ~f: ( pairBoth  standardise ) @>
-                                 sort ~compare: (
-                                   fun ( x, _ ) ( y, _ ) ->
-                                     Stdlib.compare x y
-                                 ) @> map ~f: (
-                                   fun ( k, v ) ->
-                                     ETup [ k ; v ]
-                                 ) ) in
-                     ECVal ( "INTERNAL.map" , ps' ) )
-  | EList es -> ( ECVal ( "INTERNAL.list" , map ~f:standardise es ) )
-  | ETAbs _
-  | ETApp _
-  | EFcmp _
-  | EHcmp _
-  | ELet _
-  | ECls _
-  | EDely _ -> ( raise ( Invalid_argument "Cannot hash a non-value!" ) )
-  | _ -> ( e ) )
-
-let rec destandardise ( e : exp ) : exp =
-  ( match ( e ) with
-  | ETup es -> ( ETup ( map ~f:destandardise es ) )
-  | ECVal ( "INTERNAL.map" , bs ) -> ( let bs' = ( let extract = ( function
-                                                                            | ETup [ k ; v ] -> ( ( destandardise k, destandardise v ) )
-                                                                            | _ -> ( raise ( Invalid_argument "Cannot destandardise invalid map binding!" ) ) ) in
-                                                              bs &>
-                                                                map ~f:extract @>
-                                                                PolyMap.of_alist_exn ) in
-                                                    EMap bs' )
-  | ECVal ( "INTERNAL.list" , es ) -> ( EList ( map ~f:destandardise es ) )
-  | ECVal ( c, es ) -> ( ECVal ( c, map ~f:destandardise es ) )
-  | EMap _
-  | ETAbs _
-  | ETApp _
-  | EFcmp _
-  | EHcmp _
-  | ELet _
-  | ECls _
-  | EDely _
-  | ELazy _ -> ( raise ( Invalid_argument "Cannot deserialise this kind of value!" ) )
-  | _ -> ( e ) )
-
 let rec eqCoreBool   ( v1 : exp ) ( v2 : exp ) : bool =
   ( match ( ( v1, v2 ) ) with
-  | ( EMap _, EMap _ ) -> ( standardise v1 = standardise v2 )
+  | ( EMap m1, EMap m2 ) -> ( Core.Map.equal eqCoreBool   m1 m2 )
   | ( EPrim p1, EPrim p2 ) -> ( p1 = p2 )
   | ( ECVal ( c1, es1 ) , ECVal ( c2, es2 ) ) -> ( if ( c1 <> c2 )
                                              then ( false )
                                              else ( eqCoreBool   ( ETup es1 ) ( ETup es2 ) ) )
-  | ( ETup ts1, ETup ts2 ) -> ( if ( length ts1 <> length ts2 )
+  | ( ETup ts1, ETup ts2 ) -> ( if ( List.length ts1 <> List.length ts2 )
                                              then ( false )
-                                             else ( zip_exn ts1 ts2 &>
-                                                    for_all ~f: ( uncurry eqCoreBool   ) ) )
+                                             else ( List.zip_exn ts1 ts2 &>
+                                                    List.for_all ~f: ( uncurry eqCoreBool   ) ) )
   | ( EList vs1, EList vs2 ) -> ( let open Core.List.Or_unequal_lengths in
-                                          match ( zip vs1 vs2 ) with
+                                          match ( List.zip vs1 vs2 ) with
                                           | Unequal_lengths -> ( false )
-                                          | Ok ps -> ( for_all ~f: ( uncurry eqCoreBool   ) ps ) )
+                                          | Ok ps -> ( List.for_all ~f: ( uncurry eqCoreBool   ) ps ) )
   | _ -> ( false ) )
 
 let ( === ) = ( eqCoreBool   )
@@ -187,8 +137,8 @@ let patBoundVarsWithTypes     : pat -> ( string * typ ) list =
         | PVar xt -> ( PolySet.singleton xt )
         | PCVal ( _, _, ps )
         | PTup ps -> ( ps &>
-                                map ~f:patBoundVars   @>
-                                fold ~init:PolySet.empty ~f: ( ++ ) )
+                                List.map ~f:patBoundVars   @>
+                                List.fold ~init:PolySet.empty ~f: ( ++ ) )
         | PConj ( p, p' ) -> ( patBoundVars   p ++ patBoundVars   p' )
         | _ -> ( PolySet.empty ) ) in
   patBoundVars   @>
@@ -200,8 +150,8 @@ let rec patBoundVars   : pat -> StringSet.t =
   | PVar ( x, _ ) -> ( StringSet.singleton x )
   | PCVal ( _, _, ps )
   | PTup ps -> ( ps &>
-                          map ~f:patBoundVars   @>
-                          fold ~init:StringSet.empty ~f: ( ++ ) )
+                          List.map ~f:patBoundVars   @>
+                          List.fold ~init:StringSet.empty ~f: ( ++ ) )
   | PConj ( p, p' ) -> ( patBoundVars   p ++ patBoundVars   p' )
   | _ -> ( StringSet.empty ) )
 
@@ -210,8 +160,8 @@ let rec patFreeVars   : pat -> StringSet.t =
   function
   | PCVal ( _, _, ps )
   | PTup ps -> ( ps &>
-                          map ~f:patFreeVars   @>
-                          fold ~init:StringSet.empty ~f: ( ++ ) )
+                          List.map ~f:patFreeVars   @>
+                          List.fold ~init:StringSet.empty ~f: ( ++ ) )
   | PConj ( p1, p2 ) -> ( patFreeVars   p1 ++ patFreeVars   p2 )
   | PPred e
   | PWhen ( e, _ ) -> ( expFreeVars   e )
@@ -237,17 +187,17 @@ and expFreeVars   : exp -> StringSet.t =
   | EFcmp es
   | ECVal ( _, es )
   | EList es -> ( es &>
-                         map ~f:expFreeVars   @>
-                         fold ~init:StringSet.empty ~f: ( ++ ) )
+                         List.map ~f:expFreeVars   @>
+                         List.fold ~init:StringSet.empty ~f: ( ++ ) )
   | EPrim _ -> ( StringSet.empty )
   | ELet ( bs, e ) -> ( let bound = ( bs &>
-                                     map ~f: (
+                                     List.map ~f: (
                                        fst @>
                                        patBoundVars
-                                     ) @> fold ~init:StringSet.empty ~f: ( ++ ) )
-                           in let free = ( e :: map ~f:snd bs &>
-                                     map ~f:expFreeVars   @>
-                                     fold ~init:StringSet.empty ~f: ( ++ ) ) in
+                                     ) @> List.fold ~init:StringSet.empty ~f: ( ++ ) )
+                           in let free = ( e :: List.map ~f:snd bs &>
+                                     List.map ~f:expFreeVars   @>
+                                     List.fold ~init:StringSet.empty ~f: ( ++ ) ) in
                        free // bound )
   | EHcmp _
   | ECls _

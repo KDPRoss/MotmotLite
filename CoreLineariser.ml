@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 open Syntax
 
 let rec showKnd  : knd -> string =
@@ -76,12 +74,12 @@ and showTypS   ( t : typ ) : string =
 let mixfixSpecs  = ( Syntax.Mixfix.defaultSpecs  )
 
 let showFuncs  : ( pat -> string ) * ( exp -> string ) =
-  ( let specs = ( concat_map ~f:fst mixfixSpecs  )
+  ( let specs = ( List.concat_map ~f:fst mixfixSpecs  )
       in let infix = ( let extractInfix  = ( function
                                                     | [ None ; Some x ; None ] -> ( [ x ] )
                                                     | _ -> ( [] ) ) in
                                 specs &>
-                                  concat_map ~f:extractInfix  @>
+                                  List.concat_map ~f:extractInfix  @>
                                   StringSet.of_list )
       in let infixQ : string -> bool = ( StringSet.mem infix ) in
   let rec showPat  : pat -> string =
@@ -140,7 +138,7 @@ let showFuncs  : ( pat -> string ) * ( exp -> string ) =
                                                                          concatMap  ( fun ( k, v ) -> showExp  k -- " |-> " -- showExp  v ) ", " @>
                                                                          around "<map(" ")>" )
         | EList [] -> ( "[]" )
-        | EList es -> ( let ss = ( map ~f:showExp  es )
+        | EList es -> ( let ss = ( List.map ~f:showExp  es )
                                                                            in let join = ( String.concat ~sep: ", " @>
                                                                                       around "[ " " ]" ) in
                                                                        join ss )

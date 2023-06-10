@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 type source = {
   str : string ;
   len : int ;
@@ -242,6 +240,6 @@ let parse p str =
               cleanup = [] ;
             } )
       in let res = ( p.parser src ( 0, 0 ) )
-      in let _ = ( iter ~f: ( flip apply () ) src.cleanup ) in
+      in let _ = ( List.iter ~f: ( flip apply () ) src.cleanup ) in
   res )
 

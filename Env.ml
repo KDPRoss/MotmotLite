@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 module Out = OutputManager
 
 module Map = StringMap
@@ -57,7 +55,7 @@ let joinR  : 'a t -> 'a t -> 'a t =
   ( fun g m ->
     ( m &>
       Map.to_alist @>
-      fold ~init:g ~f: ( <+> ) ) )
+      List.fold ~init:g ~f: ( <+> ) ) )
 
 let joinL  : 'a t -> 'a t -> 'a t =
   ( fun g g' ->
@@ -93,5 +91,5 @@ module Convenience = struct
   let ( ==> ) =
    ( fun m ->
      ( Map.find m ) )
-  let smashEnvs  ( gs : 'a t list ) : 'a t = ( fold ~init:empty ~f:joinL  gs ) end
+  let smashEnvs  ( gs : 'a t list ) : 'a t = ( List.fold ~init:empty ~f:joinL  gs ) end
 

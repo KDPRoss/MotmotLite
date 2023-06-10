@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 let rec restructureBindings  ( ( p, e ) : Syntax.pat * Syntax.exp ) : ( Syntax.pat * Syntax.exp ) list =
   ( let open Syntax in
   let e = ( restructureBindingsExp   e )
@@ -40,25 +38,25 @@ let rec restructureBindings  ( ( p, e ) : Syntax.pat * Syntax.exp ) : ( Syntax.p
                   in let xs = ( p &>
                                   Syntax.patBoundVars   @>
                                   StringSet.to_list ) in
-              ( PVar ( y, TVar "?" ) , e ) :: map ~f:toClause  xs ) )
+              ( PVar ( y, TVar "?" ) , e ) :: List.map ~f:toClause  xs ) )
 
 and restructureBindingsExp   : Syntax.exp -> Syntax.exp =
   ( let open Syntax in
   let loopPat  = ( restructureBindingsPat   ) in
   let rec loop = ( function
                  | ETAbs ( x, k, e ) -> ( ETAbs ( x, k, loop e ) )
-                 | EAbs ( ps, e ) -> ( EAbs ( map ~f:loopPat  ps, loop e ) )
+                 | EAbs ( ps, e ) -> ( EAbs ( List.map ~f:loopPat  ps, loop e ) )
                  | ETApp ( e, t ) -> ( ETApp ( loop e, t ) )
                  | EApp ( e, e' ) -> ( EApp ( loop e, loop e' ) )
                  | ETup [ e ] -> ( loop e )
-                 | ETup es -> ( ETup ( map ~f:loop es ) )
-                 | EFcmp es -> ( EFcmp ( map ~f:loop es ) )
+                 | ETup es -> ( ETup ( List.map ~f:loop es ) )
+                 | EFcmp es -> ( EFcmp ( List.map ~f:loop es ) )
                  | EHcmp ( e, e' ) -> ( EHcmp ( loop e, loop e' ) )
-                 | ECVal ( c, es ) -> ( ECVal ( c, map ~f:loop es ) )
-                 | ELet ( bs, e ) -> ( let bs' = ( [ concat_map ~f:restructureBindings  bs ] )
+                 | ECVal ( c, es ) -> ( ECVal ( c, List.map ~f:loop es ) )
+                 | ELet ( bs, e ) -> ( let bs' = ( [ List.concat_map ~f:restructureBindings  bs ] )
                                           in let e' = ( loop e ) in
                                       bs' &>
-                                        fold_right ~init:e' ~f: (
+                                        List.fold_right ~init:e' ~f: (
                                           fun bs e ->
                                             ELet ( bs, e )
                                         ) )
@@ -69,9 +67,9 @@ and restructureBindingsPat   : Syntax.pat -> Syntax.pat =
   ( let open Syntax in
   let loop = ( restructureBindingsExp   ) in
   let rec loopPat  = ( function
-                     | PCVal ( c, t, ps ) -> ( PCVal ( c, t, map ~f:loopPat  ps ) )
+                     | PCVal ( c, t, ps ) -> ( PCVal ( c, t, List.map ~f:loopPat  ps ) )
                      | PTup [ p ] -> ( loopPat  p )
-                     | PTup ps -> ( PTup ( map ~f:loopPat  ps ) )
+                     | PTup ps -> ( PTup ( List.map ~f:loopPat  ps ) )
                      | PConj ( p, p' ) -> ( PConj ( loopPat  p, loopPat  p' ) )
                      | PWhen ( e, mt ) -> ( PWhen ( loop e, mt ) )
                      | PPred e -> ( PPred ( loop e ) )

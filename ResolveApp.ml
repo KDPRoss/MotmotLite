@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 open Syntax.Mixfix
 
 type 'a at = AB of 'a at list
@@ -40,10 +38,10 @@ let resolveGroupRight   s es =
             ( let extract = ( function
                           | [ None ; Some s ; None ] -> ( s )
                           | _ -> ( raise Not_found ) ) in
-            map ~f:extract s ) in
+            List.map ~f:extract s ) in
       let rec chop acc =
             ( function
-            | AL x :: xs when List.mem ~equal: ( = ) symbolsToFind   x -> ( Some ( rev acc, x, xs ) )
+            | AL x :: xs when List.mem ~equal: ( = ) symbolsToFind   x -> ( Some ( List.rev acc, x, xs ) )
             | e :: xs -> ( chop ( e :: acc ) xs )
             | [] -> ( None ) ) in
       match ( chop [] es ) with
@@ -54,8 +52,8 @@ let resolveGroupRight   s es =
   | _ -> ( None ) )
 
 let resolveGroupLeft   s es =
-  ( match ( resolveGroupRight   s ( rev es ) ) with
-  | Some ( [ es1 ; f ; es2 ] , s ) -> ( Some ( [ rev es2 ; f ; rev es1 ] , s ) )
+  ( match ( resolveGroupRight   s ( List.rev es ) ) with
+  | Some ( [ es1 ; f ; es2 ] , s ) -> ( Some ( [ List.rev es2 ; f ; List.rev es1 ] , s ) )
   | _ -> ( None ) )
 
 let specs = ( Syntax.Mixfix.defaultSpecs  )
@@ -66,19 +64,19 @@ let rec resolveApps  es =
         | ( ss, ass ) :: sss -> ( match ( match ( ass ) with
                                    | Left -> ( resolveGroupLeft   ss es )
                                    | Right -> ( resolveGroupRight   ss es ) ) with
-                              | Some ( es', s ) -> ( let es'' = ( map ~f:resolveApps  es' ) in
+                              | Some ( es', s ) -> ( let es'' = ( List.map ~f:resolveApps  es' ) in
                                                  let rec strip acc =
                                                        ( function
                                                        | [] -> ( Some acc )
                                                        | Some x :: xs -> ( strip ( acc @ [ x ] ) xs )
                                                        | None :: _ -> ( None ) ) in
                                                  match ( strip [] es'' ) with
-                                                 | Some es -> ( let cs = ( zip_exn s es ) in
+                                                 | Some es -> ( let cs = ( List.zip_exn s es ) in
                                                               let rec split ( s, es ) = ( function
                                                                                       | ( Some f, _ ) :: cs -> ( split ( f :: s, es ) cs )
                                                                                       | ( None, e ) :: cs -> ( split ( s, es @ [ e ] ) cs )
                                                                                       | [] -> ( let s' = ( s &>
-                                                                                                                        rev @>
+                                                                                                                        List.rev @>
                                                                                                                         String.concat ~sep: "_" ) in
                                                                                                              ( s', es ) ) ) in
                                                               match ( split ( [] , [] ) cs ) with
@@ -100,7 +98,7 @@ let appTreesOfExps    =
         | SurfaceSyntax.EVar x -> ( let showQnameInt   = ( String.concat ~sep: "." ) in
                                   AL ( showQnameInt   x ) )
         | e -> ( AO e ) ) in
-  map ~f:convertOne  )
+  List.map ~f:convertOne  )
 
 let rec expOfAppTree    =
   ( function
@@ -108,7 +106,7 @@ let rec expOfAppTree    =
              SurfaceSyntax.EVar ( parseQnameInt   x ) )
   | AO e -> ( e )
   | AB es -> ( es &>
-               map ~f:expOfAppTree    @>
+               List.map ~f:expOfAppTree    @>
                fold1 ~f: (
                  fun f x ->
                    SurfaceSyntax.EApp ( f, x )

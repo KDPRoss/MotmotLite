@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 open Syntax
 
 open Env.Convenience
@@ -70,7 +68,7 @@ let mapM  : ( 'a -> 'b evalResult ) -> 'a list -> 'b list evalResult =
           ( function
           | x :: xs -> ( f x >>= fun x' ->
                        ( loop ( x' :: res ) xs ) )
-          | [] -> ( return ( rev res ) ) ) in
+          | [] -> ( return ( List.rev res ) ) ) in
     loop [] ) )
 
 let rec flattenFcmp  = ( function
@@ -78,20 +76,20 @@ let rec flattenFcmp  = ( function
                        | EFcmp fs -> ( flattenExps  fs )
                        | e -> ( [ ( e, [] ) ] ) )
 
-and flattenExps  = ( concat_map ~f:flattenFcmp  )
+and flattenExps  = ( List.concat_map ~f:flattenFcmp  )
 
 let rec flattenPairs  = ( let one = ( function
                                    | ( EDely ( fvs, _ ) , vs ) -> ( pushArgs  fvs vs )
                                    | fv -> ( [ fv ] ) ) in
-                         concat_map ~f:one )
+                         List.concat_map ~f:one )
 
 and delayPairs  fvs st = ( EDely ( flattenPairs  fvs, st ) )
 
-and delay fs vs = ( delayPairs  ( map ~f: ( flip pair vs ) fs ) )
+and delay fs vs = ( delayPairs  ( List.map ~f: ( flip pair vs ) fs ) )
 
 and pushArgs  fvs vs = ( fvs &>
                            flattenPairs  @>
-                           map ~f: (
+                           List.map ~f: (
                              fun ( f, vs' ) ->
                                ( f, vs' @ vs )
                            ) )
@@ -133,8 +131,8 @@ let rec bindPats  ( ps : pat list ) ( vs : exp list ) ( g : exp Env.t ) : exp En
               | ( p :: ps, v :: vs ) -> ( doOne  g ( p, v ) >>= fun g' ->
                                       ( loop g' ( ps, vs ) ) )
               | _ -> ( raise EvalFailure ) ) in
-        if ( length ps <> length vs )
-           then ( fail ( "Mismatched argument lengths " -- string_of_int ( length ps ) -- " vs " -- string_of_int ( length vs ) -- "." ) )
+        if ( List.length ps <> List.length vs )
+           then ( fail ( "Mismatched argument lengths " -- string_of_int ( List.length ps ) -- " vs " -- string_of_int ( List.length vs ) -- "." ) )
            else ( loop g ( ps, vs ) >>= fun res ->
                 ( return res ) ) ) in
   bindPats  ps vs g >>= fun res ->
@@ -181,14 +179,14 @@ and eval ( g : exp Env.t ) ( e : exp ) : exp evalResult =
                                                                                                              ( x, e' ) )
                                                                                        | ( p, _ ) -> ( let _ = ( Out.error ( "Invalid destructuring pattern `" -- CoreLineariser.showPat  p -- "` in `let` / `while`; this ought to have been reduced to irrefutable binds!" ) ) in
                                                                                                              raise EvalFailure ) ) in
-                                                                          map ~f:doOne  bs )
+                                                                          List.map ~f:doOne  bs )
                                                        in let g' = ( let doOne  g ( x, e ) = ( g <+> x @-> e ) in
-                                                                          fold ~init:g ~f:doOne  bs' )
+                                                                          List.fold ~init:g ~f:doOne  bs' )
                                                        in let patchOne  ( _, e ) = ( match ( e ) with
                                                                           | ELazy r -> ( let ( e, _ ) = ( !r ) in
                                                                                        r := ( e, Some g' ) )
                                                                           | _ -> ( () ) )
-                                                       in let _ = ( iter ~f:patchOne  bs' ) in
+                                                       in let _ = ( List.iter ~f:patchOne  bs' ) in
                                                    eval g' e )
   | ECls ( [] , e, g' ) -> ( eval g' e )
   | EDely ( fvs, st ) -> ( match ( fvs ) with
@@ -200,9 +198,9 @@ and eval ( g : exp Env.t ) ( e : exp ) : exp evalResult =
                                                                                             in let one ( f, vs ) = ( let f _ = ( let expString  = ( concatMap  CoreLineariser.showExp  ", " vs ) in
                                                                                                                       "Failed: `resolve(" -- patsString  f -- " <- " -- expString  -- ")`" ) in
                                                                                                             Out.warnClosure  f )
-                                                                                            in let ( allSame,  vs ) = ( match ( map ~f:snd st ) with
+                                                                                            in let ( allSame,  vs ) = ( match ( List.map ~f:snd st ) with
                                                                                                              | [ vs ] -> ( ( false, vs ) )
-                                                                                                             | vs :: vss -> ( ( for_all ~f: ( fun vs' -> vs = vs' ) vss, vs ) )
+                                                                                                             | vs :: vss -> ( ( List.for_all ~f: ( fun vs' -> vs = vs' ) vss, vs ) )
                                                                                                              | [] -> ( ( false, [] ) ) )
                                                                                             in let _ = ( if ( allSame  )
                                                                                                                 then ( let _ = ( let f _ = ( let expString  = ( concatMap  CoreLineariser.showExp  ", " vs ) in
@@ -210,11 +208,11 @@ and eval ( g : exp Env.t ) ( e : exp ) : exp evalResult =
                                                                                                                                       Out.warnClosure  f )
                                                                                                                          in let onePats  f = ( Out.warnClosure  ( fun _ -> "    " -- patsString  f ) ) in
                                                                                                                      st &>
-                                                                                                                       iter ~f: (
+                                                                                                                       List.iter ~f: (
                                                                                                                          fst @>
                                                                                                                          onePats
                                                                                                                        ) )
-                                                                                                                else ( iter ~f:one st ) ) in
+                                                                                                                else ( List.iter ~f:one st ) ) in
                                                                                         Out.warn "----------------------------------------" ) ) in
                                                                         fail "Empty list in `evalOrDelay`!" )
                                                    | ( f, vs ) :: fvs' -> ( let resolve ( f, vs ) =
@@ -223,9 +221,9 @@ and eval ( g : exp Env.t ) ( e : exp ) : exp evalResult =
                                                                                                    ( return ( Some ( delay [ f' ] [ v ] [] ) ) ) )
                                                                               | ELazy _ as f -> ( eval g f >>= fun f' ->
                                                                                                    ( return ( Some ( delayPairs  ( ( f', vs ) :: fvs' ) st ) ) ) )
-                                                                              | ECls ( ps, e, g ) -> ( let j = ( length ps ) in
-                                                                                                   if ( length vs >= j )
-                                                                                                      then ( let ( vsNow,  vsLater  ) = ( split_n vs j )
+                                                                              | ECls ( ps, e, g ) -> ( let j = ( List.length ps ) in
+                                                                                                   if ( List.length vs >= j )
+                                                                                                      then ( let ( vsNow,  vsLater  ) = ( List.split_n vs j )
                                                                                                                in let cont = ( fun _ -> return ( Some ( delayPairs  fvs' ( st @ [ ( f, vs ) ] ) ) ) )
                                                                                                                in let succ g' = ( eval g' e >>= fun v ->
                                                                                                                                     ( match ( vsLater  ) with
@@ -242,8 +240,8 @@ and eval ( g : exp Env.t ) ( e : exp ) : exp evalResult =
                                                                                                        in let evalExn  g e = ( match ( eval g e ) with
                                                                                                                       | ESucc v -> ( v )
                                                                                                                       | res -> ( raise EvalFailure ) ) in
-                                                                                                   if ( length vs >= j )
-                                                                                                      then ( let ( vsNow,  vsLater  ) = ( split_n vs j )
+                                                                                                   if ( List.length vs >= j )
+                                                                                                      then ( let ( vsNow,  vsLater  ) = ( List.split_n vs j )
                                                                                                                in let force e = ( eval g e >>=
                                                                                                                                       beNotLazy   @>
                                                                                                                                       return ) in
@@ -293,17 +291,17 @@ and beNotLazy   = ( let eval g e = ( match ( eval g e ) with
                                  | EUnkn -> ( let _ = ( Out.error "Leaked `EUnkn`; this is an implementation bug!" ) in
                                               raise EvalFailure ) ) in
                   function
-                  | ETup vs -> ( ETup ( map ~f:beNotLazy   vs ) )
+                  | ETup vs -> ( ETup ( List.map ~f:beNotLazy   vs ) )
                   | ELazy r -> ( match ( !r ) with
                                      | ( v, None ) -> ( v )
                                      | ( e, Some g ) -> ( let v = ( eval g e )
                                                           in let _ = ( r := ( v, None ) ) in
                                                       beNotLazy   v ) )
-                  | ECVal ( c, vs ) -> ( ECVal ( c, map ~f:beNotLazy   vs ) )
-                  | EList vs -> ( EList ( map ~f:beNotLazy   vs ) )
+                  | ECVal ( c, vs ) -> ( ECVal ( c, List.map ~f:beNotLazy   vs ) )
+                  | EList vs -> ( EList ( List.map ~f:beNotLazy   vs ) )
                   | EMap m -> ( let m' = ( m &>
                                                 PolyMap.to_alist @>
-                                                map ~f: ( fun ( k, v ) -> ( beNotLazy   k, beNotLazy   v ) ) @>
+                                                List.map ~f: ( fun ( k, v ) -> ( beNotLazy   k, beNotLazy   v ) ) @>
                                                 PolyMap.of_alist_exn ) in
                                      EMap m' )
                   | v -> ( v ) )

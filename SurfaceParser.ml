@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 open ParserCombinators
 
 open CommonParser
@@ -198,8 +196,8 @@ let parserFuncs  : SurfaceSyntax.pat lazyParse * SurfaceSyntax.pat lazyParse * S
                                                          ( just ( SurfaceSyntax. ( ELSec ( t, EVar x, e ) ) ) ) )
                          | _ -> ( fail "bad left section" ) ) )
                   in let rscb = ( many1Spaces   ( cache expT  ) <!= txt "{" <!> cache typ <!= txt "}" >>= fun ( es, t ) ->
-                         ( match ( rev es ) with
-                         | SurfaceSyntax.EVar x :: es -> ( let es = ( rev es ) in
+                         ( match ( List.rev es ) with
+                         | SurfaceSyntax.EVar x :: es -> ( let es = ( List.rev es ) in
                                                          handleApp  es >>= fun e ->
                                                          ( just ( SurfaceSyntax. ( ERSec ( e, EVar x, t ) ) ) ) )
                          | _ -> ( fail "bad right section" ) ) )
@@ -209,8 +207,8 @@ let parserFuncs  : SurfaceSyntax.pat lazyParse * SurfaceSyntax.pat lazyParse * S
                                                          ( just ( SurfaceSyntax. ( ELSecImp ( EVar x, e ) ) ) ) )
                          | _ -> ( fail "bad left section" ) )
                   in let rimb = ( many1Spaces   ( cache expT  ) <!= txt "_" >>= fun es ->
-                         ( match ( rev es ) with
-                         | SurfaceSyntax.EVar x :: es -> ( let es = ( rev es ) in
+                         ( match ( List.rev es ) with
+                         | SurfaceSyntax.EVar x :: es -> ( let es = ( List.rev es ) in
                                                          handleApp  es >>= fun e ->
                                                          ( just ( SurfaceSyntax. ( ERSecImp ( e, EVar x ) ) ) ) )
                          | _ -> ( fail "bad right section" ) ) ) in

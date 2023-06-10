@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-open List
-
 open Syntax
 
 open PreludeUtil
@@ -65,7 +63,7 @@ let eqCore  _ _ v1 v2 =
               | EList _
               | EMap _ -> ( () )
               | _ -> ( userFailureInvalidArg    "Incomparable syntactic class" [ v1 ; v2 ] None ) )
-      in let _ = ( map ~f:check [ v1 ; v2 ] ) in
+      in let _ = ( List.map ~f:check [ v1 ; v2 ] ) in
   boolToInternal   ( v1 === v2 ) )
 
 let compareCoreGen   fNum  ( _eval : evalTyp ) ( _g : exp Env.t ) v1 v2 =
@@ -108,16 +106,16 @@ let makeMapCore   _ _ e =
                      | None -> ( PolyMap.add_exn m ~key:k ~data:v ) )
       in let m = ( e &>
                        listToExternal   @>
-                       map ~f:one @>
-                       rev @>
-                       fold ~init:PolyMap.empty ~f:add ) in
+                       List.map ~f:one @>
+                       List.rev @>
+                       List.fold ~init:PolyMap.empty ~f:add ) in
   EMap m )
 
 let fromMapCore   _ _ e =
   ( match ( e ) with
   | EMap m -> ( m &>
                 PolyMap.to_alist @>
-                map ~f: (
+                List.map ~f: (
                   fun ( k, v ) ->
                     ETup [ k ; v ]
                 ) @> listToInternal   )
