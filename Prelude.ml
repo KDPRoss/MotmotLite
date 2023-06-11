@@ -56,15 +56,10 @@ let divCore  = ( let divCore  x y = ( if ( Q.zero = y )
                   twoArgSimpCore    numPack  divCore  )
 
 let eqCore  _ _ v1 v2 =
-  ( let check = ( function
-              | ETup _
-              | ECVal _
-              | EPrim _
-              | EList _
-              | EMap _ -> ( () )
-              | _ -> ( userFailureInvalidArg    "Incomparable syntactic class" [ v1 ; v2 ] None ) )
-      in let _ = ( List.map ~f:check [ v1 ; v2 ] ) in
-  boolToInternal   ( v1 === v2 ) )
+  ( let _ = ( if ( not ( eqableQ v1 && eqableQ v2 ) )
+             then ( userFailureInvalidArg    "Incomparable syntactic class." [ v1 ; v2 ] None ) ) in
+  try ( boolToInternal   ( eqCoreBool   true v1 v2 ) ) with
+  | _ -> ( userFailureInvalidArg    "Incomparable syntactic class (nested value)." [ v1 ; v2 ] None ) )
 
 let compareCoreGen   fNum  ( _eval : evalTyp ) ( _g : exp Env.t ) v1 v2 =
   ( match ( ( v1, v2 ) ) with

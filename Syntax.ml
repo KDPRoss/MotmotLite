@@ -84,8 +84,22 @@ let showPrim  : prim -> string =
                         Str.global_replace ( Str.regexp_string "/" ) " / " ) in
                 showRational  n ) )
 
-let rec eqCoreBool   ( v1 : exp ) ( v2 : exp ) : bool =
-  ( match ( ( v1, v2 ) ) with
+exception EqIncomparableEsc of ( exp * exp )
+
+let eqableQ : exp -> bool =
+  ( function
+  | ETup _
+  | ECVal _
+  | EPrim _
+  | EList _
+  | EMap _ -> ( true )
+  | _ -> ( false ) )
+
+let rec eqCoreBool   ( throwForFunc   : bool ) ( v1 : exp ) ( v2 : exp ) : bool =
+  ( let eqCoreBool   = ( eqCoreBool   throwForFunc   )
+      in let _ = ( if ( throwForFunc   && not ( eqableQ v1 && eqableQ v2 ) )
+                        then ( raise ( EqIncomparableEsc ( v1, v2 ) ) ) ) in
+  match ( ( v1, v2 ) ) with
   | ( EMap m1, EMap m2 ) -> ( Core.Map.equal eqCoreBool   m1 m2 )
   | ( EPrim p1, EPrim p2 ) -> ( p1 = p2 )
   | ( ECVal ( c1, es1 ) , ECVal ( c2, es2 ) ) -> ( if ( c1 <> c2 )
@@ -101,7 +115,7 @@ let rec eqCoreBool   ( v1 : exp ) ( v2 : exp ) : bool =
                                           | Ok ps -> ( List.for_all ~f: ( uncurry eqCoreBool   ) ps ) )
   | _ -> ( false ) )
 
-let ( === ) = ( eqCoreBool   )
+let ( === ) = ( eqCoreBool   false )
 
 module type MIXFIX = sig
   exception ResolveFailure of string
