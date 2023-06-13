@@ -86,13 +86,16 @@ let showPrim  : prim -> string =
 
 exception EqIncomparableEsc of ( exp * exp )
 
-let eqableQ : exp -> bool =
+let rec eqableQ : exp -> bool =
   ( function
-  | ETup _
-  | ECVal _
-  | EPrim _
-  | EList _
-  | EMap _ -> ( true )
+  | ETup es
+  | ECVal ( _, es )
+  | EList es -> ( List.for_all ~f:eqableQ es )
+  | EPrim _ -> ( true )
+  | EMap m -> ( let ksQ = ( m &>
+                                 PolyMap.keys @>
+                                 List.for_all ~f:eqableQ ) in
+                     ksQ && PolyMap.for_all ~f:eqableQ m )
   | _ -> ( false ) )
 
 let rec eqCoreBool   ( throwForFunc   : bool ) ( v1 : exp ) ( v2 : exp ) : bool =

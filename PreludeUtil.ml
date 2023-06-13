@@ -110,3 +110,8 @@ let boolToInternal   : bool -> exp =
   | true -> ( ECVal ( "True" , [] ) )
   | false -> ( ECVal ( "False" , [] ) ) )
 
+let forceEqable  ( e : exp ) : exp =
+  ( if ( not ( eqableQ e ) )
+     then ( dynFail  "Incomparable syntactic class." [ e ] )
+     else ( e ) )
+

@@ -76,25 +76,30 @@ let geCore  = ( compareCoreGen   Q.geq )
 
 let mapAddCore   _ _ e1 e2 =
   ( match ( ( e1, e2 ) ) with
-  | ( EMap m, ETup [ k ; v ] ) -> ( let m' = ( PolyMap.remove m k ) in
+  | ( EMap m, ETup [ k ; v ] ) -> ( let m' = ( k &>
+                                           forceEqable  @>
+                                           PolyMap.remove m ) in
                                 EMap ( PolyMap.add_exn m' ~key:k ~data:v ) )
   | ( m, kv ) -> ( dynFail  "Invalid map / pair" [ m ; kv ] ) )
 
 let mapRemCore   _ _ e1 k =
   ( match ( e1 ) with
-  | EMap m -> ( EMap ( PolyMap.remove m k ) )
+  | EMap m -> ( let _ = ( forceEqable  k ) in
+              EMap ( PolyMap.remove m k ) )
   | v -> ( dynFail  "Invalid map" [ v ] ) )
 
 let mapFindCore   _ _ e1 k =
   ( match ( e1 ) with
-  | EMap m -> ( match ( PolyMap.find m k ) with
+  | EMap m -> ( match ( k &>
+                     forceEqable  @>
+                     PolyMap.find m ) with
               | Some v -> ( ECVal ( "Just" , [ v ] ) )
               | None -> ( ECVal ( "Nothing" , [] ) ) )
   | v -> ( dynFail  "Invalid map" [ v ] ) )
 
 let makeMapCore   _ _ e =
   ( let one = ( function
-                     | ETup [ x ; y ] -> ( ( x, y ) )
+                     | ETup [ x ; y ] -> ( ( forceEqable  x, y ) )
                      | v -> ( dynFail  "Bad tuple in `makeMapCore`" [ v ] ) )
       in let add m ( k, v ) = ( match ( PolyMap.find m k ) with
                      | Some _ -> ( m )
