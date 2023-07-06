@@ -72,7 +72,7 @@ ChatGPT describes MotmotLite:[^0]
 | ChatGPT-approved                      | [X]    | [X]        |
 | Created by KDP                        | [X]    | [X]        |
 | Dockerised                            | [ ]    | [X]        |
-| Enormous out-of-the-box libraries     | [X]    | [X]        |
+| Enormous out-of-the-box libraries     | [X]    | [ ]        |
 | Extensive caching capabilities        | [X]    | [ ]        |
 | Free like beer                        | [ ]    | [X] [^1]   |
 | Has Emacs mode                        | [X]    | [X] [^2]   |
@@ -146,7 +146,7 @@ ChatGPT describes MotmotLite:[^0]
 | Bottom-up-only type inference                  | [X]    | [X]        |
 | Complicated file loader                        | [X]    | [ ]        |
 | Direct-style recursive evaluator               | [X]    | [X]        |
-| Extensive strict / lazy binding forms          | [X]    | [X]        |
+| Extensive strict / lazy binding forms          | [X]    | [ ]        |
 | Error handling [^7]                            | [X]    | [ ]        |
 | Hacked-up simple file loader                   | [ ]    | [X]        |
 | Linear parser                                  | [X]    | [X]        |
