@@ -41,8 +41,6 @@ type typ = TVar of string
            | TTpl of typ list
            | TBrackets of typ
 
-type prim = Syntax.prim
-
 type exp = EVar of qName
            | ETAbs of ( string list * knd * exp )
            | ETAbsNoBkt of ( string * knd * exp )
@@ -52,7 +50,7 @@ type exp = EVar of qName
            | EBrackets of exp
            | EFcmp of exp list
            | ECons of qName
-           | EPrim of prim
+           | ENum of Q.t
            | EWhere of ( exp * ( pat * exp ) list )
            | EFun of exp list
            | EAnn of ( exp * typ )
@@ -79,7 +77,7 @@ type exp = EVar of qName
            | PWhen of ( exp * typ option )
            | PPred of exp
            | PEq of exp
-           | PPrim of prim
+           | PNum of Q.t
 
 let var x = ( Syntax.EVar x )
 
@@ -137,7 +135,7 @@ let rec coreOfSurfaceExp    ( normTyp  : Syntax.typ -> Syntax.typ ) : exp -> Syn
   | EBrackets e -> ( coreOfSurfaceExp    e )
   | EFcmp es -> ( Syntax.EFcmp ( List.map ~f:coreOfSurfaceExp    es ) )
   | ECons x -> ( Syntax.ECVal ( fromQName   x, [] ) )
-  | EPrim p -> ( Syntax.EPrim p )
+  | ENum n -> ( Syntax.ENum n )
   | EWhere ( e, bs ) -> ( Syntax.ELet ( List.map ~f: ( pairMap  coreOfSurfacePat    coreOfSurfaceExp    ) bs, coreOfSurfaceExp    e ) )
   | EFun es -> ( EFcmp ( List.map ~f:coreOfSurfaceExp    es ) )
   | EAnn ( e, t ) -> ( Syntax. ( EApp ( ETApp ( var "id" , coreOfSurfaceTyp    t ) , coreOfSurfaceExp    e ) ) )
@@ -170,10 +168,10 @@ and coreOfSurfacePat    ( normTyp  : Syntax.typ -> Syntax.typ ) : pat -> Syntax.
   | PBrackets p -> ( coreOfSurfacePat    p )
   | PConj ( p, p' ) -> ( Syntax.PConj ( coreOfSurfacePat    p, coreOfSurfacePat    p' ) )
   | PWhen ( e, mt ) -> ( let mt' = ( match ( mt ) with
-                                       | Some t -> ( Some ( coreOfSurfaceTyp    t ) )
-                                       | None -> ( None ) ) in
-                             Syntax.PWhen ( coreOfSurfaceExp    e, mt' ) )
+                                   | Some t -> ( Some ( coreOfSurfaceTyp    t ) )
+                                   | None -> ( None ) ) in
+                         Syntax.PWhen ( coreOfSurfaceExp    e, mt' ) )
   | PPred e -> ( Syntax.PPred ( coreOfSurfaceExp    e ) )
   | PEq e -> ( Syntax. ( PPred ( EApp ( var "==" , coreOfSurfaceExp    e ) ) ) )
-  | PPrim p -> ( coreOfSurfacePat    ( PEq ( EPrim p ) ) ) )
+  | PNum n -> ( coreOfSurfacePat    ( PEq ( ENum n ) ) ) )
 

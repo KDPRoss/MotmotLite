@@ -80,13 +80,6 @@ let repsepK  ( p : 'a parse ) ( s : 'b parse ) : 'a list parse =
       and nonEmpty  = ( lazy ( cache mult ||| cache single ) ) in
   cache nonEmpty  ||| cache empty )
 
-let repsepKNoSpace    ( p : 'a parse ) ( s : 'b parse ) : 'a list parse =
-  ( let rec mult = ( lazy ( p <*= s <*> cache nonEmpty  >>> fun ( x, xs ) -> x :: xs ) )
-      and single = ( lazy ( p >>> fun x -> [ x ] ) )
-      and empty = ( lazy ( just [] ) )
-      and nonEmpty  = ( lazy ( cache mult ||| cache single ) ) in
-  cache nonEmpty  ||| cache empty )
-
 let many1Spaces   ( p : 'a parse ) : 'a list parse =
   ( let rec mult = ( lazy ( p <!> cache nonEmpty  >>> fun ( x, xs ) -> x :: xs ) )
       and single = ( lazy ( p >>> fun x -> [ x ] ) )
@@ -94,8 +87,6 @@ let many1Spaces   ( p : 'a parse ) : 'a list parse =
   cache nonEmpty  )
 
 let commaSepList1    ( p : 'a parse ) : 'a list parse = ( repsep1  ( p <== just () ) ( txt "," <== just () ) )
-
-let commaSepList   ( p : 'a parse ) : 'a list parse = ( repsepK  ( p <== just () ) ( txt "," <== just () ) )
 
 let nonEmpty  s =
   ( if ( String.length s = 0 )

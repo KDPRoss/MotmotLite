@@ -31,9 +31,9 @@ open Syntax
 
 open PreludeUtil
 
-let userFailureInvalidArg    s es _ = ( raise ( Primitives.UserFailure ( s, listToInternal   es ) ) )
+let userFailureInvalidArg    s es _ = ( raise ( Syntax.UserFailure ( s, listToInternal   es ) ) )
 
-let twoArgGenCore    ( proj1 : exp -> 'a ) ( proj2 : exp -> 'b ) ( inj : 'c -> exp ) ( core : 'a -> 'b -> 'c ) ( _eval : evalTyp ) ( _g : exp Env.t ) v1 v2 =
+let twoArgGenCore    ( proj1 : exp -> 'a ) ( proj2 : exp -> 'b ) ( inj : 'c -> exp ) ( core : 'a -> 'b -> 'c ) v1 v2 =
   ( let n1 = ( proj1 v1 )
       in let n2 = ( proj2 v2 )
       in let n3 = ( core n1 n2 ) in
@@ -51,19 +51,19 @@ let subCore  = ( twoArgSimpCore    numPack  Q. ( - ) )
 let mulCore  = ( twoArgSimpCore    numPack  Q. ( * ) )
 
 let divCore  = ( let divCore  x y = ( if ( Q.zero = y )
-                                        then ( userFailureInvalidArg    "Division by zero" [ EPrim ( Num x ) ; EPrim ( Num y ) ] None )
-                                        else ( Q. ( x / y ) ) ) in
-                  twoArgSimpCore    numPack  divCore  )
+                                     then ( userFailureInvalidArg    "Division by zero" [ ENum x ; ENum y ] None )
+                                     else ( Q. ( x / y ) ) ) in
+               twoArgSimpCore    numPack  divCore  )
 
-let eqCore  _ _ v1 v2 =
+let eqCore  v1 v2 =
   ( let _ = ( if ( not ( eqableQ v1 && eqableQ v2 ) )
              then ( userFailureInvalidArg    "Incomparable syntactic class." [ v1 ; v2 ] None ) ) in
   try ( boolToInternal   ( eqCoreBool   true v1 v2 ) ) with
   | _ -> ( userFailureInvalidArg    "Incomparable syntactic class (nested value)." [ v1 ; v2 ] None ) )
 
-let compareCoreGen   fNum  ( _eval : evalTyp ) ( _g : exp Env.t ) v1 v2 =
+let compareCoreGen   fNum  v1 v2 =
   ( match ( ( v1, v2 ) ) with
-  | ( EPrim ( Num n1 ) , EPrim ( Num n2 ) ) -> ( boolToInternal   ( fNum  n1 n2 ) )
+  | ( ENum n1, ENum n2 ) -> ( boolToInternal   ( fNum  n1 n2 ) )
   | _ -> ( userFailureInvalidArg    "Incomparable syntactic class" [ v1 ; v2 ] None ) )
 
 let ltCore  = ( compareCoreGen   Q.lt )
@@ -74,7 +74,7 @@ let gtCore  = ( compareCoreGen   Q.gt )
 
 let geCore  = ( compareCoreGen   Q.geq )
 
-let mapAddCore   _ _ e1 e2 =
+let mapAddCore   e1 e2 =
   ( match ( ( e1, e2 ) ) with
   | ( EMap m, ETup [ k ; v ] ) -> ( let m' = ( k &>
                                            forceEqable  @>
@@ -82,13 +82,13 @@ let mapAddCore   _ _ e1 e2 =
                                 EMap ( PolyMap.add_exn m' ~key:k ~data:v ) )
   | ( m, kv ) -> ( dynFail  "Invalid map / pair" [ m ; kv ] ) )
 
-let mapRemCore   _ _ e1 k =
+let mapRemCore   e1 k =
   ( match ( e1 ) with
   | EMap m -> ( let _ = ( forceEqable  k ) in
               EMap ( PolyMap.remove m k ) )
   | v -> ( dynFail  "Invalid map" [ v ] ) )
 
-let mapFindCore   _ _ e1 k =
+let mapFindCore   e1 k =
   ( match ( e1 ) with
   | EMap m -> ( match ( k &>
                      forceEqable  @>
@@ -97,7 +97,7 @@ let mapFindCore   _ _ e1 k =
               | None -> ( ECVal ( "Nothing" , [] ) ) )
   | v -> ( dynFail  "Invalid map" [ v ] ) )
 
-let makeMapCore   _ _ e =
+let makeMapCore   e =
   ( let one = ( function
                      | ETup [ x ; y ] -> ( ( forceEqable  x, y ) )
                      | v -> ( dynFail  "Bad tuple in `makeMapCore`" [ v ] ) )
@@ -111,7 +111,7 @@ let makeMapCore   _ _ e =
                        List.fold ~init:PolyMap.empty ~f:add ) in
   EMap m )
 
-let fromMapCore   _ _ e =
+let fromMapCore   e =
   ( match ( e ) with
   | EMap m -> ( m &>
                 PolyMap.to_alist @>
@@ -123,65 +123,63 @@ let fromMapCore   _ _ e =
 
 let minPreludeTerm   =
   ( let parseExp  = ( SurfaceParser.expExt  @>
-                  SurfaceSyntax.coreOfSurfaceExp    id ) in
-  let bs =
-        ( [
-          ( "*" , ENatF ( "mul" , Natv2 mulCore  ) ) ;
-          ( "+" , ENatF ( "add" , Natv2 addCore  ) ) ;
-          ( "-" , ENatF ( "sub" , Natv2 subCore  ) ) ;
-          ( "/" , ENatF ( "div" , Natv2 divCore  ) ) ;
-          ( "::" , parseExp  "Cons" ) ;
-          ( "<" , ENatF ( "lt" , Natv2 ltCore  ) ) ;
-          ( "<+>" , ENatF ( "map-add" , Natv2 mapAddCore   ) ) ;
-          ( "<->" , ENatF ( "map-rem" , Natv2 mapRemCore   ) ) ;
-          ( "<>" , EMap PolyMap.empty ) ;
-          ( "<|" , parseExp  "(a : *) => (b : *) => flip (|>{ a, b })" ) ;
-          ( "=/=" , parseExp  "(a : *) => x : a ~ y : a ~ not (x == y)" ) ;
-          ( "=<" , ENatF ( "lte" , Natv2 leCore  ) ) ;
-          ( "==" , ENatF ( "eq" , Natv2 eqCore  ) ) ;
-          ( ">" , ENatF ( "gt" , Natv2 gtCore  ) ) ;
-          ( ">>" , parseExp  "(a : *) => (b : *) => (c : *) => f : a -> b ~ g : b -> c ~ x : a ~ g (f x)" ) ;
-          ( ">+>" , ENatF ( "map-find" , Natv2 mapFindCore   ) ) ;
-          ( ">=" , ENatF ( "gte" , Natv2 geCore  ) ) ;
-          ( "flip" , parseExp  "(a : *) => (b : *) => (c : *) => f : a -> b -> c ~ y : b ~ x : a ~ f x y" ) ;
-          ( "id" , parseExp  "(a : *) => x : a ~ x" ) ;
-          ( "not" , parseExp  "fun (True ~ False) (False ~ True)" ) ;
-          ( "|->" , parseExp  "(b : *) => (a : *) => x : a ~ y : b ~ (x, y)" ) ;
-          ( "|>" , parseExp  "(a : *) => (b : *) => x : a ~ f : a -> b ~ f x" ) ;
-          ( "list->map" , ENatF ( "list-to-map" , Natv1 makeMapCore   ) ) ;
-          ( "map->list" , ENatF ( "map-to-list" , Natv1 fromMapCore   ) ) ;
-        ] ) in
+                  SurfaceSyntax.coreOfSurfaceExp    id )
+      in let bs = [
+                    ( "*" , ENatF ( "mul" , Natv2 mulCore  ) ) ;
+                    ( "+" , ENatF ( "add" , Natv2 addCore  ) ) ;
+                    ( "-" , ENatF ( "sub" , Natv2 subCore  ) ) ;
+                    ( "/" , ENatF ( "div" , Natv2 divCore  ) ) ;
+                    ( "::" , parseExp  "Cons" ) ;
+                    ( "<" , ENatF ( "lt" , Natv2 ltCore  ) ) ;
+                    ( "<+>" , ENatF ( "map-add" , Natv2 mapAddCore   ) ) ;
+                    ( "<->" , ENatF ( "map-rem" , Natv2 mapRemCore   ) ) ;
+                    ( "<>" , EMap PolyMap.empty ) ;
+                    ( "<|" , parseExp  "(a : *) => (b : *) => flip (|>{ a, b })" ) ;
+                    ( "=/=" , parseExp  "(a : *) => x : a ~ y : a ~ not (x == y)" ) ;
+                    ( "=<" , ENatF ( "lte" , Natv2 leCore  ) ) ;
+                    ( "==" , ENatF ( "eq" , Natv2 eqCore  ) ) ;
+                    ( ">" , ENatF ( "gt" , Natv2 gtCore  ) ) ;
+                    ( ">>" , parseExp  "(a : *) => (b : *) => (c : *) => f : a -> b ~ g : b -> c ~ x : a ~ g (f x)" ) ;
+                    ( ">+>" , ENatF ( "map-find" , Natv2 mapFindCore   ) ) ;
+                    ( ">=" , ENatF ( "gte" , Natv2 geCore  ) ) ;
+                    ( "flip" , parseExp  "(a : *) => (b : *) => (c : *) => f : a -> b -> c ~ y : b ~ x : a ~ f x y" ) ;
+                    ( "id" , parseExp  "(a : *) => x : a ~ x" ) ;
+                    ( "not" , parseExp  "fun (True ~ False) (False ~ True)" ) ;
+                    ( "|->" , parseExp  "(b : *) => (a : *) => x : a ~ y : b ~ (x, y)" ) ;
+                    ( "|>" , parseExp  "(a : *) => (b : *) => x : a ~ f : a -> b ~ f x" ) ;
+                    ( "list->map" , ENatF ( "list-to-map" , Natv1 makeMapCore   ) ) ;
+                    ( "map->list" , ENatF ( "map-to-list" , Natv1 fromMapCore   ) ) ;
+                  ] in
   Env.cons bs )
 
 let minPreludeType   =
   ( let parseTyp  = ( SurfaceParser.typ @>
-                  SurfaceSyntax.coreOfSurfaceTyp    id ) in
-  let bs =
-        ( [
-          ( "*" , parseTyp  "Num -> Num -> Num" ) ;
-          ( "+" , parseTyp  "Num -> Num -> Num" ) ;
-          ( "-" , parseTyp  "Num -> Num -> Num" ) ;
-          ( "/" , parseTyp  "Num -> Num -> Num" ) ;
-          ( "::" , parseTyp  "(a : *) => a -> [ a ] -> [ a ]" ) ;
-          ( "<" , parseTyp  "Num -> Num -> Bool" ) ;
-          ( "<+>" , parseTyp  "(a : *) => (b : *) => Map a b -> (a, b) -> Map a b" ) ;
-          ( "<->" , parseTyp  "(a : *) => (b : *) => Map a b -> a -> Map a b" ) ;
-          ( "<<" , parseTyp  "(a : *) => (b : *) => (c : *) => (b -> c) -> (a -> b) -> a -> c" ) ;
-          ( "<>" , parseTyp  "(a : *) => (b : *) => Map a b" ) ;
-          ( "<|" , parseTyp  "(a : *) => (b : *) => (a -> b) -> a -> b" ) ;
-          ( "=/=" , parseTyp  "(a : *) => a -> a -> Bool" ) ;
-          ( "=<" , parseTyp  "Num -> Num -> Bool" ) ;
-          ( "==" , parseTyp  "(a : *) => a -> a -> Bool" ) ;
-          ( ">" , parseTyp  "Num -> Num -> Bool" ) ;
-          ( ">+>" , parseTyp  "(a : *) => (b : *) => Map a b -> a -> Maybe b" ) ;
-          ( ">=" , parseTyp  "Num -> Num -> Bool" ) ;
-          ( ">>" , parseTyp  "(a : *) => (b : *) => (c : *) => (a -> b) -> (b -> c) -> a -> c" ) ;
-          ( "id" , parseTyp  "(a : *) => a -> a" ) ;
-          ( "list->map" , parseTyp  "(a : *) => (b : *) => [ (a, b) ] -> Map a b" ) ;
-          ( "map->list" , parseTyp  "(a : *) => (b : *) => Map a b -> [ (a, b) ]" ) ;
-          ( "not" , parseTyp  "Bool -> Bool" ) ;
-          ( "|->" , parseTyp  "(b : *) => (a : *) => a -> b -> (a, b)" ) ;
-          ( "|>" , parseTyp  "(a : *) => (b : *) => a -> (a -> b) -> b" ) ;
-        ] ) in
+                  SurfaceSyntax.coreOfSurfaceTyp    id )
+      in let bs = [
+                    ( "*" , parseTyp  "Num -> Num -> Num" ) ;
+                    ( "+" , parseTyp  "Num -> Num -> Num" ) ;
+                    ( "-" , parseTyp  "Num -> Num -> Num" ) ;
+                    ( "/" , parseTyp  "Num -> Num -> Num" ) ;
+                    ( "::" , parseTyp  "(a : *) => a -> [ a ] -> [ a ]" ) ;
+                    ( "<" , parseTyp  "Num -> Num -> Bool" ) ;
+                    ( "<+>" , parseTyp  "(a : *) => (b : *) => Map a b -> (a, b) -> Map a b" ) ;
+                    ( "<->" , parseTyp  "(a : *) => (b : *) => Map a b -> a -> Map a b" ) ;
+                    ( "<<" , parseTyp  "(a : *) => (b : *) => (c : *) => (b -> c) -> (a -> b) -> a -> c" ) ;
+                    ( "<>" , parseTyp  "(a : *) => (b : *) => Map a b" ) ;
+                    ( "<|" , parseTyp  "(a : *) => (b : *) => (a -> b) -> a -> b" ) ;
+                    ( "=/=" , parseTyp  "(a : *) => a -> a -> Bool" ) ;
+                    ( "=<" , parseTyp  "Num -> Num -> Bool" ) ;
+                    ( "==" , parseTyp  "(a : *) => a -> a -> Bool" ) ;
+                    ( ">" , parseTyp  "Num -> Num -> Bool" ) ;
+                    ( ">+>" , parseTyp  "(a : *) => (b : *) => Map a b -> a -> Maybe b" ) ;
+                    ( ">=" , parseTyp  "Num -> Num -> Bool" ) ;
+                    ( ">>" , parseTyp  "(a : *) => (b : *) => (c : *) => (a -> b) -> (b -> c) -> a -> c" ) ;
+                    ( "id" , parseTyp  "(a : *) => a -> a" ) ;
+                    ( "list->map" , parseTyp  "(a : *) => (b : *) => [ (a, b) ] -> Map a b" ) ;
+                    ( "map->list" , parseTyp  "(a : *) => (b : *) => Map a b -> [ (a, b) ]" ) ;
+                    ( "not" , parseTyp  "Bool -> Bool" ) ;
+                    ( "|->" , parseTyp  "(b : *) => (a : *) => a -> b -> (a, b)" ) ;
+                    ( "|>" , parseTyp  "(a : *) => (b : *) => a -> (a -> b) -> b" ) ;
+                  ] in
   Env.cons bs )
 

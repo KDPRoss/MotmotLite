@@ -29,7 +29,7 @@ open Util
 
 open Env.Convenience
 
-let typCnsKndEnv    = ( smashEnvs  [ Typing.baseKindEnv   SurfaceParser.knd ; Primitives.primKindEnv   SurfaceParser.knd ] ; )
+let typCnsKndEnv    = ( Typing.baseKindEnv   SurfaceParser.knd ; )
 
 let expCnsTypEnv    = ( Typing.baseTermConsEnv    (
                         SurfaceParser.typ @>
@@ -102,7 +102,7 @@ let handleError  e : 'a =
   | ParserCombinators.ParseFailure ( s, i ) -> ( let _ = ( print_endline "Parse failure:" )
                                                  in let _ = ( showParseError   s i ) in
                                              () )
-  | Primitives.UserFailure ( s, e ) -> ( print_endline ( "User-level failure: " -- s -- ": " -- CoreLineariser.showExp  e ) )
+  | Syntax.UserFailure ( s, e ) -> ( print_endline ( "User-level failure: " -- s -- ": " -- CoreLineariser.showExp  e ) )
   | Typing.TypeAbort
   | Typing.TypeError -> ( print_endline "Type error." )
   | _ -> ( let _ = ( print_endline "Something went wrong!" )

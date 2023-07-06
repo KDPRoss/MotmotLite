@@ -39,8 +39,6 @@ type typ = TVar of string
                | TApp of ( typ * typ )
                | TTpl of typ list
 
-type prim = Num of Q.t
-
 type exp = EVar of string
                | ETAbs of ( string * knd * exp )
                | EAbs of ( pat list * exp )
@@ -48,14 +46,13 @@ type exp = EVar of string
                | EApp of ( exp * exp )
                | ETup of exp list
                | EFcmp of exp list
-               | EHcmp of ( exp * exp )
                | ECVal of ( string * exp list )
                | ELet of ( ( pat * exp ) list * exp )
                | ECls of ( pat list * exp * exp Env.t )
                | EDely of ( exp * exp list ) list * ( exp * exp list ) list
                | ELazy of ( exp * exp Env.t option ) ref
                | ENatF of ( string * natvFunc )
-               | EPrim of prim
+               | ENum of Q.t
                | EList of exp list
                | EMap of ( exp, exp ) PolyMap.t
  and pat = PAny of typ
@@ -65,24 +62,15 @@ type exp = EVar of string
                | PConj of ( pat * pat )
                | PPred of exp
                | PWhen of ( exp * typ option )
- and evalTyp = exp Env.t -> exp -> exp
- and natvFunc = Natv1 of ( evalTyp -> exp Env.t -> exp -> exp )
-               | Natv2 of ( evalTyp -> exp Env.t -> exp -> exp -> exp )
-               | Natv3 of ( evalTyp -> exp Env.t -> exp -> exp -> exp -> exp )
+ and natvFunc = Natv1 of ( exp -> exp )
+               | Natv2 of ( exp -> exp -> exp )
+
+exception UserFailure of ( string * exp )
 
 let natNumArgs   : natvFunc -> int =
   ( function
   | Natv1 _ -> ( 1 )
-  | Natv2 _ -> ( 2 )
-  | Natv3 _ -> ( 3 ) )
-
-let showPrim  : prim -> string =
-  ( function
-  | Num n -> ( let showRational  ( n : Q.t ) : string =
-                      ( n &>
-                        Q.to_string @>
-                        Str.global_replace ( Str.regexp_string "/" ) " / " ) in
-                showRational  n ) )
+  | Natv2 _ -> ( 2 ) )
 
 exception EqIncomparableEsc of ( exp * exp )
 
@@ -91,7 +79,7 @@ let rec eqableQ : exp -> bool =
   | ETup es
   | ECVal ( _, es )
   | EList es -> ( List.for_all ~f:eqableQ es )
-  | EPrim _ -> ( true )
+  | ENum _ -> ( true )
   | EMap m -> ( let ksQ = ( m &>
                                  PolyMap.keys @>
                                  List.for_all ~f:eqableQ ) in
@@ -104,7 +92,7 @@ let rec eqCoreBool   ( throwForFunc   : bool ) ( v1 : exp ) ( v2 : exp ) : bool 
                         then ( raise ( EqIncomparableEsc ( v1, v2 ) ) ) ) in
   match ( ( v1, v2 ) ) with
   | ( EMap m1, EMap m2 ) -> ( Core.Map.equal eqCoreBool   m1 m2 )
-  | ( EPrim p1, EPrim p2 ) -> ( p1 = p2 )
+  | ( ENum n1, ENum n2 ) -> ( n1 = n2 )
   | ( ECVal ( c1, es1 ) , ECVal ( c2, es2 ) ) -> ( if ( c1 <> c2 )
                                              then ( false )
                                              else ( eqCoreBool   ( ETup es1 ) ( ETup es2 ) ) )
@@ -206,7 +194,7 @@ and expFreeVars   : exp -> StringSet.t =
   | EList es -> ( es &>
                          List.map ~f:expFreeVars   @>
                          List.fold ~init:StringSet.empty ~f: ( ++ ) )
-  | EPrim _ -> ( StringSet.empty )
+  | ENum _ -> ( StringSet.empty )
   | ELet ( bs, e ) -> ( let bound = ( bs &>
                                      List.map ~f: (
                                        fst @>
@@ -216,7 +204,6 @@ and expFreeVars   : exp -> StringSet.t =
                                      List.map ~f:expFreeVars   @>
                                      List.fold ~init:StringSet.empty ~f: ( ++ ) ) in
                        free // bound )
-  | EHcmp _
   | ECls _
   | EDely _
   | ELazy _

@@ -87,15 +87,15 @@ let around l r s = ( l -- s -- r )
 let parenthesise = ( around "(" ")" )
 
 let fold1 ~f:f xs = ( match ( xs ) with
-                                                      | x :: xs -> ( List.fold ~f:f ~init:x xs )
-                                                      | [] -> ( failwith "fold1 argument error" ) )
+                    | x :: xs -> ( List.fold ~f:f ~init:x xs )
+                    | [] -> ( failwith "fold1 argument error" ) )
 
 let nub xs = ( PolySet.stable_dedup_list xs )
 
 let readFile  f = ( let is = ( open_in f )
-                          in let lines = ( Std.input_list is )
-                          in let _ = ( close_in is ) in
-                      lines )
+                      in let lines = ( Std.input_list is )
+                      in let _ = ( close_in is ) in
+                  lines )
 
 let gSeed  = ( ref 0 )
 

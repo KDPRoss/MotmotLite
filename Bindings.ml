@@ -51,7 +51,6 @@ and restructureBindingsExp   : Syntax.exp -> Syntax.exp =
                  | ETup [ e ] -> ( loop e )
                  | ETup es -> ( ETup ( List.map ~f:loop es ) )
                  | EFcmp es -> ( EFcmp ( List.map ~f:loop es ) )
-                 | EHcmp ( e, e' ) -> ( EHcmp ( loop e, loop e' ) )
                  | ECVal ( c, es ) -> ( ECVal ( c, List.map ~f:loop es ) )
                  | ELet ( bs, e ) -> ( let bs' = ( [ List.concat_map ~f:restructureBindings  bs ] )
                                           in let e' = ( loop e ) in

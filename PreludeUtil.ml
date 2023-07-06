@@ -29,8 +29,6 @@ open Util
 
 open Syntax
 
-open Primitives
-
 module Out = OutputManager
 
 exception DynFailure
@@ -66,11 +64,11 @@ let listToInternal   ( es : exp list ) : exp =
 
 let numToExternal   : exp -> Q.t =
   ( function
-  | EPrim ( Num n ) -> ( n )
+  | ENum n -> ( n )
   | v -> ( dynFail  "Invalid num." [ v ] ) )
 
 let numToInternal   ( n : Q.t ) : exp =
-  ( EPrim ( Num n ) )
+  ( ENum n )
 
 let integerQ ( n : Q.t ) : bool =
   ( let n' = ( n &>
@@ -80,9 +78,9 @@ let integerQ ( n : Q.t ) : bool =
 
 let intToExternal   : exp -> Q.t option =
   ( function
-  | EPrim ( Num n ) -> ( if ( integerQ n )
-                        then ( Some n )
-                        else ( None ) )
+  | ENum n -> ( if ( integerQ n )
+                 then ( Some n )
+                 else ( None ) )
   | _ -> ( None ) )
 
 let nonnegativeIntToExternal    ( e : exp ) : Q.t option =

@@ -47,7 +47,6 @@ let rec showTyp  : typ -> string =
   ( function
   | TVar x -> ( x )
   | TAbs ( x, k, t ) -> ( parenthesise ( x -- " : " -- showKnd  k ) -- " => " -- showTyp  t )
-  | TCVal ( "FAKE" , [] ) -> ( "_" )
   | TCVal ( c, [] ) -> ( showQnameExt   c )
   | TCVal ( "List" , [ t ] ) -> ( "[ " -- showTyp  t -- " ]" )
   | TCVal ( c, ts ) -> ( showQnameExt   c -- " " -- concatMap  showTypS   " " ts )
@@ -68,8 +67,8 @@ and showTypS   ( t : typ ) : string =
   | TCVal ( _, [] ) -> ( showTyp  t )
   | TCVal ( "List" , _ ) -> ( showTyp  t )
   | _ -> ( t &>
-                               showTyp  @>
-                               parenthesise ) )
+                           showTyp  @>
+                           parenthesise ) )
 
 let mixfixSpecs  = ( Syntax.Mixfix.defaultSpecs  )
 
@@ -114,37 +113,36 @@ let showFuncs  : ( pat -> string ) * ( exp -> string ) =
       and showExp  : exp -> string =
         ( function
         | EApp ( EApp ( EVar x, e ) , e' ) when infixQ x -> ( showExpH   e -- " " -- x -- " " -- showExpH   e' )
-        | ECVal ( "Cons" , [] ) -> ( "Cons" )
-        | ECVal ( "Cons" , [ e ] ) -> ( "Cons " -- showExpS   e )
         | EVar x when infixQ x -> ( parenthesise x )
         | EVar x -> ( showQnameExt   x )
         | ETAbs ( x, k, e ) -> ( parenthesise ( x -- " : " -- showKnd  k ) -- " => " -- showExp  e )
         | EAbs ( ps, e ) -> ( concatMap  showPat  " | " ps -- " ~ " -- showExp  e )
         | ETApp _ as e -> ( let rec collectTypes  res = ( function
-                                                                                                   | ETApp ( e, t ) -> ( collectTypes  ( t :: res ) e )
-                                                                                                   | e -> ( ( e, res ) ) ) in
-                                                                       let ( e', ts ) = ( collectTypes  [] e ) in
-                                                                       showExpS   e' -- "{ " -- concatMap  showTyp  ", " ts -- " }" )
+                                                                                   | ETApp ( e, t ) -> ( collectTypes  ( t :: res ) e )
+                                                                                   | e -> ( ( e, res ) ) ) in
+                                                       let ( e', ts ) = ( collectTypes  [] e ) in
+                                                       showExpS   e' -- "{ " -- concatMap  showTyp  ", " ts -- " }" )
         | EApp ( e, e' ) -> ( showExpH   e -- " " -- showExpS   e' )
         | ETup es -> ( parenthesise ( concatMap  showExp  ", " es ) )
         | EFcmp fs -> ( concatMap  showExpH   " <+ " fs )
         | ECVal ( c, [] ) -> ( showQnameExt   c )
         | ECVal ( c, es ) -> ( showQnameExt   c -- " " -- concatMap  showExpS   " " es )
         | ELet ( bs, e ) -> ( let showOne  ( p, e ) = ( showPat  p -- " = " -- showExpH   e ) in
-                                                                       "let " -- concatMap  showOne  " | " bs -- " in " -- showExp  e )
-        | EPrim p -> ( showPrim  p )
+                                                       "let " -- concatMap  showOne  " | " bs -- " in " -- showExp  e )
+        | ENum n -> ( n &>
+                                                         Q.to_string @>
+                                                         Str.global_replace ( Str.regexp_string "/" ) " / " )
         | EMap m -> ( let ps = ( PolyMap.to_alist m ) in
-                                                                       ps &>
-                                                                         concatMap  ( fun ( k, v ) -> showExp  k -- " |-> " -- showExp  v ) ", " @>
-                                                                         around "<map(" ")>" )
+                                                       ps &>
+                                                         concatMap  ( fun ( k, v ) -> showExp  k -- " |-> " -- showExp  v ) ", " @>
+                                                         around "<map(" ")>" )
         | EList [] -> ( "[]" )
         | EList es -> ( let ss = ( List.map ~f:showExp  es )
-                                                                           in let join = ( String.concat ~sep: ", " @>
-                                                                                      around "[ " " ]" ) in
-                                                                       join ss )
+                                                           in let join = ( String.concat ~sep: ", " @>
+                                                                      around "[ " " ]" ) in
+                                                       join ss )
         | ECls _
         | EDely _
-        | EHcmp _
         | ELazy _
         | ENatF _ -> ( "<fun>" ) )
       and showExpH   ( e : exp ) : string =
@@ -159,7 +157,7 @@ let showFuncs  : ( pat -> string ) * ( exp -> string ) =
         | EVar _
         | ETup _
         | ECVal ( _, [] )
-        | EPrim _
+        | ENum _
         | EList _
         | EDely _
         | ECls _

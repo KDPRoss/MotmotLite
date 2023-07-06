@@ -102,26 +102,35 @@ let negNumberQ  s = ( Str.string_match ( Str.regexp "^-[0-9]+[kmb]?$" ) s 0 )
 
 let mixfixSpecs  = ( Syntax.Mixfix.defaultSpecs  )
 
-let parserFuncs  : SurfaceSyntax.pat lazyParse * SurfaceSyntax.pat lazyParse * SurfaceSyntax.exp lazyParse * SurfaceSyntax.exp lazyParse * SurfaceSyntax.exp lazyParse * SurfaceSyntax.exp lazyParse =
+let numP  : Q.t parse =
+  ( let postProcess s = ( match ( Str.split ( Str.regexp_string "." ) s ) with
+                       | [ w ; f ] -> ( let d = ( Q.of_string ( "1" -- String.make ( String.length f ) '0' ) )
+                                          in let f' = ( Q. ( of_string f / d ) ) in
+                                      w &>
+                                        Q.of_string @>
+                                        Q. ( + ) f' @>
+                                        just )
+                       | [ w ] -> ( w &>
+                                        Q.of_string @>
+                                        just )
+                       | _ -> ( fail "Bad number." ) )
+      in let oldStyle = ( regexp ( Str.regexp "[0-9]+\\([.][0-9]+\\)?" ) >>= postProcess )
+      in let postProcess = ( function
+                       | ( Some _, n ) -> ( Q.neg n )
+                       | ( None, n ) -> ( n ) ) in
+  maybe ( txt "-" ) <*> oldStyle >>> postProcess )
+
+let exp : SurfaceSyntax.exp lazyParse =
   ( let rec patExt  : SurfaceSyntax.pat lazyParse =
         ( let core () =
               ( let pany = ( txt "_" ==> txt ":" ==> cache typ >>> fun t -> SurfaceSyntax.PAnyNoBkt t )
                   in let pvar = ( varPExt   <== txt ":" <=> cache typ >>> fun xt -> SurfaceSyntax.PVarNoBkt xt ) in
-              pany ||| pvar ||| cache pat ) in
-        lazy ( core () ) )
-      and pat : SurfaceSyntax.pat lazyParse =
-        ( let core () = ( cache patB  ) in
-        lazy ( core () ) )
-      and patB  : SurfaceSyntax.pat lazyParse =
-        ( let core () = ( cache patC  ) in
+              pany ||| pvar ||| cache patC  ) in
         lazy ( core () ) )
       and patC  : SurfaceSyntax.pat lazyParse =
         ( let core () =
-              ( let pconj = ( cache patD  <== txt "and" <=> cache patC  >>> fun ( p, p' ) -> SurfaceSyntax.PConj ( p, p' ) ) in
-              pconj ||| cache patD  ) in
-        lazy ( core () ) )
-      and patD  : SurfaceSyntax.pat lazyParse =
-        ( let core () = ( cache patE  ) in
+              ( let pconj = ( cache patE  <== txt "and" <=> cache patC  >>> fun ( p, p' ) -> SurfaceSyntax.PConj ( p, p' ) ) in
+              pconj ||| cache patE  ) in
         lazy ( core () ) )
       and patE  : SurfaceSyntax.pat lazyParse =
         ( let core () =
@@ -149,8 +158,8 @@ let parserFuncs  : SurfaceSyntax.pat lazyParse * SurfaceSyntax.pat lazyParse * S
                   in let plist = ( txt "[" =!> commaSepList1    ( cache patExt  ) <== trailer <== txt "]" >>> fun ps -> SurfaceSyntax.PList ps )
                   in let pnil = ( txt "[{" =!> cache typ <== txt "}]" >>> fun t -> SurfaceSyntax.PNil t )
                   in let tapp = ( qName  <*= txt "{" <!> commaSepList1    ( cache typ ) <== trailer <== txt "}" >>> fun ( c, ts ) -> SurfaceSyntax.PCVal ( c, ts, [] ) )
-                  in let pprim = ( cache Primitives.parsePrim  >>> fun p -> SurfaceSyntax.PPrim p ) in
-              pprim ||| tapp ||| pnil ||| plist ||| pany ||| pvar ||| pcns ||| ppred ||| ptup ||| pwhen ||| pexp ) in
+                  in let pnum = ( numP  >>> fun n -> SurfaceSyntax.PNum n ) in
+              pnum ||| tapp ||| pnil ||| plist ||| pany ||| pvar ||| pcns ||| ppred ||| ptup ||| pwhen ||| pexp ) in
         lazy ( core () ) )
       and exp : SurfaceSyntax.exp lazyParse =
         ( let core () =
@@ -162,7 +171,7 @@ let parserFuncs  : SurfaceSyntax.pat lazyParse * SurfaceSyntax.pat lazyParse * S
       and efun = ( lazy ( txt "fun" =!> many1Spaces   ( cache expT  ) >>> fun es -> SurfaceSyntax.EFun es ) )
       and expB  : SurfaceSyntax.exp lazyParse =
         ( let core () =
-              ( let bind = ( cache pat <== txt "=" <!> cache expB  <== just () )
+              ( let bind = ( cache patC  <== txt "=" <!> cache expB  <== just () )
                   in let ewhere = ( cache expM  <== txt "where" <=> repsep1  bind ( txt "|" <== just () ) >>> fun ebs -> SurfaceSyntax.EWhere ebs ) in
               cache etabs ||| cache eabs ||| ewhere ||| cache expM  ) in
         lazy ( core () ) )
@@ -237,14 +246,13 @@ let parserFuncs  : SurfaceSyntax.pat lazyParse * SurfaceSyntax.pat lazyParse * S
                   in let enil = ( txt "[{" =!> cache typ <== txt "}]" >>> fun t -> SurfaceSyntax.ENil t )
                   in let elist = ( txt "[" =!> commaSepList1    ( cache exp ) <== trailer <== txt "]" >>> fun es -> SurfaceSyntax.EListLit es )
                   in let emap = ( ( txt "{m" ||| txt "{" ) =!> commaSepList1    ( cache expT  <== txt "|->" <=> cache exp ) <== trailer <== txt "}" >>> fun ps -> SurfaceSyntax.EMapLit ps )
-                  in let eprim = ( cache Primitives.parsePrim  >>> fun p -> SurfaceSyntax.EPrim p ) in
-              emap ||| enil ||| elist ||| evar ||| ecval ||| etup ||| eprim ) in
+                  in let enum = ( numP  >>> fun n -> SurfaceSyntax.ENum n ) in
+              emap ||| enil ||| elist ||| evar ||| ecval ||| etup ||| enum ) in
         lazy ( core () ) ) in
-  ( pat, patS,  exp, expS,  expH,  expB  ) )
+  exp )
 
 let tlExp  s =
-  ( let ( _, _, exp, _, _, _ ) = ( parserFuncs  )
-      in let tlExp  = ( cache exp >>> fun e -> TopLevelSyntax.TLExp e )
+  ( let tlExp  = ( cache exp >>> fun e -> TopLevelSyntax.TLExp e )
       in let tlBind  = ( varPExt   <== txt ":" <=> cache typ <== txt "=" <=> cache exp >>> fun ( ( x, t ) , e ) -> TopLevelSyntax.TLBind ( x, t, e ) ) in
   wrapParser  ( spaces =*> ( tlBind  ||| tlExp  ) <*= spaces <*= eof ) s )
 
@@ -252,6 +260,5 @@ let knd s = ( wrapParser  ( spaces =*> cache knd <*= spaces <*= eof ) s )
 
 let typ s = ( wrapParser  ( spaces =*> cache typ <*= spaces <*= eof ) s )
 
-let expExt  s = ( let ( _, _, exp, _, _, _ ) = ( parserFuncs  ) in
-                 wrapParser  ( spaces =*> cache exp <*= spaces <*= eof ) s )
+let expExt  s = ( wrapParser  ( spaces =*> cache exp <*= spaces <*= eof ) s )
 
