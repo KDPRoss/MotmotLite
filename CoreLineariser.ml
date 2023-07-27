@@ -41,15 +41,13 @@ and showKndS   ( k : knd ) : string =
                showKnd  @>
                parenthesise ) )
 
-let showQnameExt   = ( id )
-
 let rec showTyp  : typ -> string =
   ( function
   | TVar x -> ( x )
   | TAbs ( x, k, t ) -> ( parenthesise ( x -- " : " -- showKnd  k ) -- " => " -- showTyp  t )
-  | TCVal ( c, [] ) -> ( showQnameExt   c )
+  | TCVal ( c, [] ) -> ( c )
   | TCVal ( "List" , [ t ] ) -> ( "[ " -- showTyp  t -- " ]" )
-  | TCVal ( c, ts ) -> ( showQnameExt   c -- " " -- concatMap  showTypS   " " ts )
+  | TCVal ( c, ts ) -> ( c -- " " -- concatMap  showTypS   " " ts )
   | TArr ( t, t' ) -> ( showTypH   t -- " -> " -- showTyp  t' )
   | TApp ( t, t' ) -> ( showTypH   t -- " " -- showTypS   t' )
   | TTpl ts -> ( parenthesise ( concatMap  showTyp  ", " ts ) ) )
@@ -85,10 +83,10 @@ let showFuncs  : ( pat -> string ) * ( exp -> string ) =
         ( function
         | PAny t -> ( "(_ : " -- showTyp  t -- ")" )
         | PVar ( x, t ) -> ( "(" -- x -- " : " -- showTyp  t -- ")" )
-        | PCVal ( c, [] , [] ) -> ( showQnameExt   c )
-        | PCVal ( c, ts, [] ) -> ( showQnameExt   c -- "{ " -- concatMap  showTyp  ", " ts -- " }" )
-        | PCVal ( c, [] , ps ) -> ( showQnameExt   c -- " " -- concatMap  showPatS   " " ps )
-        | PCVal ( c, ts, ps ) -> ( showQnameExt   c -- "{ " -- concatMap  showTyp  ", " ts -- " } " -- concatMap  showPatS   " " ps )
+        | PCVal ( c, [] , [] ) -> ( c )
+        | PCVal ( c, ts, [] ) -> ( c -- "{ " -- concatMap  showTyp  ", " ts -- " }" )
+        | PCVal ( c, [] , ps ) -> ( c -- " " -- concatMap  showPatS   " " ps )
+        | PCVal ( c, ts, ps ) -> ( c -- "{ " -- concatMap  showTyp  ", " ts -- " } " -- concatMap  showPatS   " " ps )
         | PTup ps -> ( parenthesise ( concatMap  showPat  ", " ps ) )
         | PConj ( p, p' ) -> ( showPatS   p -- " and " -- showPatH   p' )
         | PWhen ( e, None ) -> ( "`{" -- showExp  e -- "}" )
@@ -114,7 +112,7 @@ let showFuncs  : ( pat -> string ) * ( exp -> string ) =
         ( function
         | EApp ( EApp ( EVar x, e ) , e' ) when infixQ x -> ( showExpH   e -- " " -- x -- " " -- showExpH   e' )
         | EVar x when infixQ x -> ( parenthesise x )
-        | EVar x -> ( showQnameExt   x )
+        | EVar x -> ( x )
         | ETAbs ( x, k, e ) -> ( parenthesise ( x -- " : " -- showKnd  k ) -- " => " -- showExp  e )
         | EAbs ( ps, e ) -> ( concatMap  showPat  " | " ps -- " ~ " -- showExp  e )
         | ETApp _ as e -> ( let rec collectTypes  res = ( function
@@ -125,8 +123,8 @@ let showFuncs  : ( pat -> string ) * ( exp -> string ) =
         | EApp ( e, e' ) -> ( showExpH   e -- " " -- showExpS   e' )
         | ETup es -> ( parenthesise ( concatMap  showExp  ", " es ) )
         | EFcmp fs -> ( concatMap  showExpH   " <+ " fs )
-        | ECVal ( c, [] ) -> ( showQnameExt   c )
-        | ECVal ( c, es ) -> ( showQnameExt   c -- " " -- concatMap  showExpS   " " es )
+        | ECVal ( c, [] ) -> ( c )
+        | ECVal ( c, es ) -> ( c -- " " -- concatMap  showExpS   " " es )
         | ELet ( bs, e ) -> ( let showOne  ( p, e ) = ( showPat  p -- " = " -- showExpH   e ) in
                                                        "let " -- concatMap  showOne  " | " bs -- " in " -- showExp  e )
         | ENum n -> ( n &>

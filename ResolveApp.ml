@@ -95,15 +95,13 @@ let rec resolveApps  es =
 let appTreesOfExps    =
   ( let convertOne  =
         ( function
-        | SurfaceSyntax.EVar x -> ( let showQnameInt   = ( String.concat ~sep: "." ) in
-                                  AL ( showQnameInt   x ) )
+        | SurfaceSyntax.EVar x -> ( AL x )
         | e -> ( AO e ) ) in
   List.map ~f:convertOne  )
 
 let rec expOfAppTree    =
   ( function
-  | AL x -> ( let parseQnameInt   = ( String.split ~on:'.' ) in
-             SurfaceSyntax.EVar ( parseQnameInt   x ) )
+  | AL x -> ( SurfaceSyntax.EVar x )
   | AO e -> ( e )
   | AB es -> ( es &>
                List.map ~f:expOfAppTree    @>

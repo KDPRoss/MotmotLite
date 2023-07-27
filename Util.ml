@@ -100,6 +100,6 @@ let readFile  f = ( let is = ( open_in f )
 let gSeed  = ( ref 0 )
 
 let gensym _ = ( let res = ( !gSeed  )
-                                              in let _ = ( gSeed  := res + 1 ) in
-                                          res )
+                   in let _ = ( gSeed  := res + 1 ) in
+               res )
 

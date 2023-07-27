@@ -29,8 +29,6 @@ open Util
 
 open Syntax
 
-module Out = OutputManager
-
 exception DynFailure
 
 exception NativeFailure of string
@@ -43,12 +41,12 @@ let dynFail  ( s : string ) ( es : exp list ) : 'a =
   ( let s' = ( match ( es ) with
            | [] -> ( "Dynamic failure: " -- s )
            | _ -> ( "Dynamic failure: " -- s -- " with expressions context:" ) )
-      in let _ = ( Out.error s' )
+      in let _ = ( print_endline s' )
       in let _ = ( es &>
              List.iter ~f: (
                CoreLineariser.showExp  @>
                ( -- ) "  " @>
-               Out.error
+               print_endline
              ) ) in
   raise DynFailure )
 

@@ -117,13 +117,5 @@ let varPExt   : string parse =
                                         init <*> follow' >>> mashCharString   ) in
   startWithLetterOrUnderscore     ||| startWithNormalOpC     ||| startWithSpecialOpC     )
 
-let atomP  =
-  ( let norm = ( ( stringOf  upperC  >>= nonEmpty  ) <*> maybe varPExt   >>> uncurry mashStringStringOpt    )
-      in let esc = ( let body = ( "[]\n\r" &>
-                          oneOfNotC    @>
-                          stringOf  ) in
-             txt "[[" =*> body <*= txt "]]" >>> fun t -> "[[" -- t -- "]]" ) in
-  esc ||| norm )
-
-let qName  : string list parse = ( repsep1NoSpace    atomP  ( txt "." ) )
+let atomP  = ( ( stringOf  upperC  >>= nonEmpty  ) <*> maybe varPExt   >>> uncurry mashStringStringOpt    )
 

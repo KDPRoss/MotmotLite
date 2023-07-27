@@ -236,8 +236,7 @@ let rec kernelMain  () =
          kernelMain  () ) )
 
 let _ =
-  ( let kernel = ( kernelModeQ  () ) in
-  if ( kernel )
+  ( if ( kernelModeQ  () )
      then ( kernelMain  () )
      else ( replMain  () ) )
 

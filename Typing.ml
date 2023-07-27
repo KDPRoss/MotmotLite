@@ -31,8 +31,6 @@ open Syntax
 
 open Env.Convenience
 
-module Out = OutputManager
-
 let tBool  = ( TCVal ( "Bool" , [] ) )
 
 exception TypeAbort
@@ -42,7 +40,7 @@ exception TypeError
 let typeError  ( s : string ) =
   ( let _ = ( match ( s ) with
           | "" -> ( () )
-          | _ -> ( Out.error s ) ) in
+          | _ -> ( print_endline s ) ) in
   raise TypeError )
 
 let baseTermConsEnv    parseTyp  =
@@ -81,7 +79,7 @@ let checkUniqueNames   ( msgGen  : string -> string ) ( xs : string list ) : boo
                     nub @>
                     concatMap  ( around "`" "`" ) ", " @>
                     msgGen  @>
-                    Out.error ) in
+                    print_endline ) in
           false ) )
 
 let freshVar  ( _ : unit ) : string =
@@ -433,7 +431,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                    loop seen' gs ) )
                                               | [] -> ( () ) ) in
                                         loop StringSet.empty )
-      in let repeatedVarsErr   = ( noRepeatedVars   Out.error ( around "Repeated variables: " ". (This list may not be exhaustive.)" ) )
+      in let repeatedVarsErr   = ( noRepeatedVars   print_endline ( around "Repeated variables: " ". (This list may not be exhaustive.)" ) )
       in let shadowedVarsWarn   gs = ( true ) in
   let rec typOf  ( d : knd Env.t ) ( g : knd Env.t ) ( bigD  : typ Env.t ) ( bigG  : typ Env.t ) ( e : exp ) : typ =
         ( let handleApp  = ( handleApp  showTyp  )
@@ -483,7 +481,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                                               "but it ought to have kind:" ;
                                                                                               "  `" -- CoreLineariser.showKnd  k -- "`" ;
                                                                                             ] ) in
-                                                                                 List.iter ~f:Out.error core ) in
+                                                                                 List.iter ~f:print_endline core ) in
                                                                          typeError  "" ) )
                                          in let _ = ( List.iter ~f:checkOne  now' )
                                          in let te'' = ( List.fold_left ~init:te' ~f: ( fun t ( t', ( x, _ ) ) -> substType  x t' t ) now' )
@@ -510,7 +508,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                     "but it ought to have kind:" ;
                                                                     "  `" -- CoreLineariser.showKnd  KStar -- "`" ;
                                                                   ] ) in
-                                                       List.iter ~f:Out.error core ) in
+                                                       List.iter ~f:print_endline core ) in
                                                typeError  "" ) )
         | EAbs ( ps, e ) -> ( let rec loop bigG  =
                                           ( function
@@ -538,7 +536,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                         "vs" ;
                                                                         "  `" -- showTyp  t' -- "`" ;
                                                                       ] ) in
-                                                           List.iter ~f:Out.error core )
+                                                           List.iter ~f:print_endline core )
                                                       in let _ = ( showDiffTypes   t t' ) in
                                                   typeError  "" ) )
                                         in let ts = ( List.map ~f: ( typOf  d g bigD  bigG  ) fs ) in
@@ -550,7 +548,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                          | _ -> ( let _ = ( let core = ( [ "Only arrow types are allowed in partial-function composition; received:" ;
                                                                                           "  `" -- showTyp  t -- "`" ;
                                                                                         ] ) in
-                                                                             List.iter ~f:Out.error core ) in
+                                                                             List.iter ~f:print_endline core ) in
                                                                      typeError  "" ) ) in
                                                  t ) )
         | ECVal ( c, es ) -> ( let ts = ( List.map ~f: ( typOf  d g bigD  bigG  ) es )
@@ -579,7 +577,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                                                                          "  `" -- CoreLineariser.showPat  p -- "`" ;
                                                                                                                          "  ought to have been rewritten to irrefutable patterns; this is a Motmot-implementation error" ;
                                                                                                                        ] ) in
-                                                                                                            List.iter ~f:Out.error core ) in
+                                                                                                            List.iter ~f:print_endline core ) in
                                                                                                     typeError  "" ) )
                                                                   in let one ( p, e ) = ( try ( match ( restructureBindings  d g bigD  bigG  ( p, e ) ) with
                                                                                        | ( None , bts' ) -> ( bts' )
@@ -597,7 +595,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                         in let names = ( List.map ~f: ( fun ( x, _, _ ) -> x ) bts )
                                         in let checkOne  ( x, t, e ) = ( try ( let t = ( reduceType  true d g t )
                                                                       in let _ = ( try ( ignore ( kindOf  d g t ) ) with
-                                                                           | _ -> ( Out.error ( "Kind error when checking type `" -- showTyp  t -- "` for binding `" -- x -- "`." ) ) )
+                                                                           | _ -> ( print_endline ( "Kind error when checking type `" -- showTyp  t -- "` for binding `" -- x -- "`." ) ) )
                                                                       in let t' = ( typOf  d g bigD  bigG'  e ) in
                                                                   if ( not ( t =~= t' ) )
                                                                      then ( let _ = ( let t' = ( reduceType  true d g t' )
@@ -608,7 +606,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                                                "with RHS" ;
                                                                                                "  `" -- CoreLineariser.showExp  e -- "`" ;
                                                                                              ] ) in
-                                                                                  List.iter ~f:Out.error core ) in
+                                                                                  List.iter ~f:print_endline core ) in
                                                                           typeError  "" ) ) with
                                                               | TypeError -> ( let _ = ( let core = ( [ "In recursive-binding context:" ;
                                                                                                    bts &>
@@ -617,7 +615,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                                                      String.concat ~sep: ", " @>
                                                                                                      ( -- ) "  " ;
                                                                                                 ] ) in
-                                                                                     List.iter ~f:Out.warn core ) in
+                                                                                     List.iter ~f:print_endline core ) in
                                                                              raise TypeAbort ) )
                                         in let _ = ( if ( not ( checkUniqueNames   ( around "Names bound in a `let` must be unique; repeated: " "." ) names ) )
                                                                  then ( typeError  "" ) )
@@ -636,7 +634,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                                         showTyp  @>
                                                                                         around "  `" "`"
                                                                                       )
-                                                                                   ) &> List.iter ~f:Out.error ) in
+                                                                                   ) &> List.iter ~f:print_endline ) in
                                                typeError  "" ) )
         | ECls _
         | EDely _
@@ -676,20 +674,20 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                                                              "  at type" ;
                                                                                                              "  `" -- showTyp  t' -- "`" ;
                                                                                                            ] ) in
-                                                                                                List.iter ~f:Out.error core ) in
+                                                                                                List.iter ~f:print_endline core ) in
                                                                                         typeError  "" )
                                                                            | TCVal _ -> ( ( t', bigG'  ) )
                                                                            | _ -> ( let _ = ( let core = ( [ "Unsaturated or unconstructor type in pattern:" ;
                                                                                                              "  at type" ;
                                                                                                              "  `" -- showTyp  t' -- "`"
                                                                                                            ] ) in
-                                                                                                List.iter ~f:Out.error core ) in
+                                                                                                List.iter ~f:print_endline core ) in
                                                                                         typeError  "" ) )
                                                                | None -> ( let _ = ( let core = ( [ "No type for term constructor:" ;
                                                                                                  "  failed constructor" ;
                                                                                                  "  `" -- CoreLineariser.showExp  ( ECVal ( c, [] ) ) -- "`." ;
                                                                                                ] ) in
-                                                                                    List.iter ~f:Out.error core ) in
+                                                                                    List.iter ~f:print_endline core ) in
                                                                            typeError  "" ) )
         | PTup ps -> ( let ( ts, gs ) = ( ps &>
                                                                                 List.map ~f: (
@@ -721,7 +719,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                                             "  vs" ;
                                                                                             "  `" -- showTyp  t2 -- "`" ;
                                                                                           ] ) in
-                                                                               List.iter ~f:Out.error core ) in
+                                                                               List.iter ~f:print_endline core ) in
                                                                        showDiffTypes   t1 t2 ;
                                                                        typeError  "" )
                                                                   else ( ( t1, Env.joinR  g1 g2 ) ) )
@@ -731,7 +729,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                                                                                                                        "  `" -- CoreLineariser.showPat  p -- "`:" ;
                                                                                                                        "    `" -- showTyp  t -- "`" ;
                                                                                                                      ] ) in
-                                                                                                          List.iter ~f:Out.error core ) in
+                                                                                                          List.iter ~f:print_endline core ) in
                                                                                                   typeError  "" ) ) )
       and restructureBindings  ( d : knd Env.t ) ( g : knd Env.t ) ( bigD  : typ Env.t ) ( bigG  : typ Env.t ) ( ( p, e ) : pat * exp ) : ( string * exp ) option * ( pat * exp ) list =
         ( let p = ( restructureBindingsPat   d g bigD  bigG  p ) in
@@ -750,7 +748,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                         in let g = ( Env.cons xts )
                         in let toClause  x = ( match ( g ==> x ) with
                                       | Some t -> ( ( PVar ( x, t ) , EApp ( EAbs ( [ p ] , EVar x ) , EVar y ) ) )
-                                      | None -> ( let _ = ( Out.error ( "No type for `" -- x -- "`." ) ) in
+                                      | None -> ( let _ = ( print_endline ( "No type for `" -- x -- "`." ) ) in
                                                   raise TypeError ) )
                         in let xs = ( p &>
                                         patBoundVars   @>
@@ -767,7 +765,7 @@ let typingFuncs  ( showTyp  : typ -> string ) =
                          | ETup es -> ( ETup ( List.map ~f:loop es ) )
                          | EFcmp es -> ( EFcmp ( List.map ~f:loop es ) )
                          | ECVal ( c, es ) -> ( ECVal ( c, List.map ~f:loop es ) )
-                         | ELet _ -> ( let _ = ( Out.error "`let` / `where` are not allowed within patterns." ) in
+                         | ELet _ -> ( let _ = ( print_endline "`let` / `where` are not allowed within patterns." ) in
                                               raise TypeError )
                          | e -> ( e ) ) in
         loop )

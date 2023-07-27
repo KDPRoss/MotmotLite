@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-module Out = OutputManager
-
 type knd = KStar
                | KArr of ( knd * knd )
 

@@ -27,8 +27,6 @@ following terms:
 
 open Util
 
-module Out = OutputManager
-
 module Map = StringMap
 
 type 'a t = 'a Map.t
@@ -38,7 +36,7 @@ let empty : 'a t = ( Map.empty )
 let size ( g : 'a t ) : int = ( Map.length g )
 
 let find m k = ( try ( Map.find_exn m k ) with
-               | e -> ( let _ = ( Out.error ( "`find` failure on `" -- k -- "`." ) ) in
+               | e -> ( let _ = ( print_endline ( "`find` failure on `" -- k -- "`." ) ) in
                       raise e ) )
 
 let ( <+> ) : 'a t -> string * 'a -> 'a t =

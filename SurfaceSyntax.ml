@@ -27,21 +27,17 @@ following terms:
 
 open Util
 
-module Out = OutputManager
-
-type qName = string list
-
 type knd = Syntax.knd
 
 type typ = TVar of string
            | TAbs of ( string list * knd * typ )
-           | TCVal of ( qName * typ list )
+           | TCVal of ( string * typ list )
            | TArr of ( typ * typ )
            | TApp of ( typ * typ )
            | TTpl of typ list
            | TBrackets of typ
 
-type exp = EVar of qName
+type exp = EVar of string
            | ETAbs of ( string list * knd * exp )
            | ETAbsNoBkt of ( string * knd * exp )
            | EAbs of ( pat list * exp )
@@ -49,7 +45,7 @@ type exp = EVar of qName
            | ETup of exp list
            | EBrackets of exp
            | EFcmp of exp list
-           | ECons of qName
+           | ECons of string
            | ENum of Q.t
            | EWhere of ( exp * ( pat * exp ) list )
            | EFun of exp list
@@ -67,7 +63,7 @@ type exp = EVar of qName
            | PAnyNoBkt of typ
            | PVar of ( string * typ )
            | PVarNoBkt of ( string * typ )
-           | PCVal of ( qName * typ list * pat list )
+           | PCVal of ( string * typ list * pat list )
            | PListCons of ( pat * pat )
            | PNil of typ
            | PList of pat list
@@ -83,17 +79,12 @@ let var x = ( Syntax.EVar x )
 
 let svar x = ( EVar x )
 
-let fromQName   : qName -> string =
-  ( function
-  | [ x ] -> ( x )
-  | _ -> ( raise Typing.TypeError ) )
-
 let rec coreOfSurfaceTyp    ( normTyp  : Syntax.typ -> Syntax.typ ) : typ -> Syntax.typ =
   ( let coreOfSurfaceTyp    t = ( coreOfSurfaceTyp    normTyp  t ) in
   function
   | TVar x -> ( Syntax.TVar x )
   | TAbs ( xs, k, t ) -> ( List.fold_right ~f: ( fun x t -> Syntax.TAbs ( x, k, t ) ) ~init: ( coreOfSurfaceTyp    t ) xs )
-  | TCVal ( c, ts ) -> ( Syntax.TCVal ( fromQName   c, List.map ~f:coreOfSurfaceTyp    ts ) )
+  | TCVal ( c, ts ) -> ( Syntax.TCVal ( c, List.map ~f:coreOfSurfaceTyp    ts ) )
   | TArr ( t, t' ) -> ( Syntax.TArr ( coreOfSurfaceTyp    t, coreOfSurfaceTyp    t' ) )
   | TApp ( t, t' ) -> ( Syntax.TApp ( coreOfSurfaceTyp    t, coreOfSurfaceTyp    t' ) )
   | TTpl ts -> ( Syntax.TTpl ( List.map ~f:coreOfSurfaceTyp    ts ) )
@@ -106,35 +97,35 @@ let rec coreOfSurfaceExp    ( normTyp  : Syntax.typ -> Syntax.typ ) : exp -> Syn
       in let andCore  e e' = ( Syntax. ( EApp ( EFcmp [ EAbs ( [ PCVal ( "True" , [] , [] ) ] , e' ) ; EAbs ( [ PCVal ( "False" , [] , [] ) ] , ECVal ( "False" , [] ) ) ] , e ) ) )
       in let orCore  e e' = ( Syntax. ( EApp ( EFcmp [ EAbs ( [ PCVal ( "False" , [] , [] ) ] , e' ) ; EAbs ( [ PCVal ( "True" , [] , [] ) ] , ECVal ( "True" , [] ) ) ] , e ) ) ) in
   function
-  | EVar [ "and" ] -> ( let x = ( Typing.freshVar  () )
-                                                             in let y = ( Typing.freshVar  () ) in
-                                                         Syntax.EAbs ( [ PVar ( x, TCVal ( "Bool" , [] ) ) ; PVar ( y, TCVal ( "Bool" , [] ) ) ] , andCore  ( EVar x ) ( EVar y ) ) )
-  | EVar [ "or" ] -> ( let x = ( Typing.freshVar  () )
-                                                             in let y = ( Typing.freshVar  () ) in
-                                                         Syntax.EAbs ( [ PVar ( x, TCVal ( "Bool" , [] ) ) ; PVar ( y, TCVal ( "Bool" , [] ) ) ] , orCore  ( EVar x ) ( EVar y ) ) )
-  | EVar x -> ( Syntax.EVar ( fromQName   x ) )
+  | EVar "and" -> ( let x = ( Typing.freshVar  () )
+                                                     in let y = ( Typing.freshVar  () ) in
+                                                 Syntax.EAbs ( [ PVar ( x, TCVal ( "Bool" , [] ) ) ; PVar ( y, TCVal ( "Bool" , [] ) ) ] , andCore  ( EVar x ) ( EVar y ) ) )
+  | EVar "or" -> ( let x = ( Typing.freshVar  () )
+                                                     in let y = ( Typing.freshVar  () ) in
+                                                 Syntax.EAbs ( [ PVar ( x, TCVal ( "Bool" , [] ) ) ; PVar ( y, TCVal ( "Bool" , [] ) ) ] , orCore  ( EVar x ) ( EVar y ) ) )
+  | EVar x -> ( Syntax.EVar x )
   | ETAbs ( xs, k, e ) -> ( List.fold_right ~f: ( fun x e -> Syntax.ETAbs ( x, k, e ) ) ~init: ( coreOfSurfaceExp    e ) xs )
   | ETAbsNoBkt ( x, k, e ) -> ( Syntax.ETAbs ( x, k, coreOfSurfaceExp    e ) )
-  | EApp ( EApp ( EVar [ "and" ] , e ) , e' ) -> ( andCore  ( coreOfSurfaceExp    e ) ( coreOfSurfaceExp    e' ) )
-  | EApp ( EApp ( EVar [ "or" ] , e ) , e' ) -> ( orCore  ( coreOfSurfaceExp    e ) ( coreOfSurfaceExp    e' ) )
-  | ELSecImp ( EVar [ "and" ] , e )
-  | ELSec ( TCVal ( [ "Bool" ] , [] ) , EVar [ "and" ] , e ) -> ( let y = ( Typing.freshVar  () ) in
-                                                         Syntax. ( EAbs ( [ PVar ( y, TCVal ( "Bool" , [] ) ) ] , andCore  ( EVar y ) ( coreOfSurfaceExp    e ) ) ) )
-  | ELSecImp ( EVar [ "or" ] , e )
-  | ELSec ( TCVal ( [ "Bool" ] , [] ) , EVar [ "or" ] , e ) -> ( let y = ( Typing.freshVar  () ) in
-                                                         Syntax. ( EAbs ( [ PVar ( y, TCVal ( "Bool" , [] ) ) ] , orCore  ( EVar y ) ( coreOfSurfaceExp    e ) ) ) )
-  | ERSecImp ( e, EVar [ "and" ] )
-  | ERSec ( e, EVar [ "and" ] , TCVal ( [ "Bool" ] , [] ) ) -> ( let y = ( Typing.freshVar  () ) in
-                                                         Syntax. ( EAbs ( [ PVar ( y, TCVal ( "Bool" , [] ) ) ] , andCore  ( coreOfSurfaceExp    e ) ( EVar y ) ) ) )
-  | ERSecImp ( e, EVar [ "or" ] )
-  | ERSec ( e, EVar [ "or" ] , TCVal ( [ "Bool" ] , [] ) ) -> ( let y = ( Typing.freshVar  () ) in
-                                                         Syntax. ( EAbs ( [ PVar ( y, TCVal ( "Bool" , [] ) ) ] , orCore  ( coreOfSurfaceExp    e ) ( EVar y ) ) ) )
+  | EApp ( EApp ( EVar "and" , e ) , e' ) -> ( andCore  ( coreOfSurfaceExp    e ) ( coreOfSurfaceExp    e' ) )
+  | EApp ( EApp ( EVar "or" , e ) , e' ) -> ( orCore  ( coreOfSurfaceExp    e ) ( coreOfSurfaceExp    e' ) )
+  | ELSecImp ( EVar "and" , e )
+  | ELSec ( TCVal ( "Bool" , [] ) , EVar "and" , e ) -> ( let y = ( Typing.freshVar  () ) in
+                                                 Syntax. ( EAbs ( [ PVar ( y, TCVal ( "Bool" , [] ) ) ] , andCore  ( EVar y ) ( coreOfSurfaceExp    e ) ) ) )
+  | ELSecImp ( EVar "or" , e )
+  | ELSec ( TCVal ( "Bool" , [] ) , EVar "or" , e ) -> ( let y = ( Typing.freshVar  () ) in
+                                                 Syntax. ( EAbs ( [ PVar ( y, TCVal ( "Bool" , [] ) ) ] , orCore  ( EVar y ) ( coreOfSurfaceExp    e ) ) ) )
+  | ERSecImp ( e, EVar "and" )
+  | ERSec ( e, EVar "and" , TCVal ( "Bool" , [] ) ) -> ( let y = ( Typing.freshVar  () ) in
+                                                 Syntax. ( EAbs ( [ PVar ( y, TCVal ( "Bool" , [] ) ) ] , andCore  ( coreOfSurfaceExp    e ) ( EVar y ) ) ) )
+  | ERSecImp ( e, EVar "or" )
+  | ERSec ( e, EVar "or" , TCVal ( "Bool" , [] ) ) -> ( let y = ( Typing.freshVar  () ) in
+                                                 Syntax. ( EAbs ( [ PVar ( y, TCVal ( "Bool" , [] ) ) ] , orCore  ( coreOfSurfaceExp    e ) ( EVar y ) ) ) )
   | EAbs ( ps, e ) -> ( Syntax.EAbs ( List.map ~f:coreOfSurfacePat    ps, coreOfSurfaceExp    e ) )
   | EApp ( e, e' ) -> ( Syntax.EApp ( coreOfSurfaceExp    e, coreOfSurfaceExp    e' ) )
   | ETup es -> ( Syntax.ETup ( List.map ~f:coreOfSurfaceExp    es ) )
   | EBrackets e -> ( coreOfSurfaceExp    e )
   | EFcmp es -> ( Syntax.EFcmp ( List.map ~f:coreOfSurfaceExp    es ) )
-  | ECons x -> ( Syntax.ECVal ( fromQName   x, [] ) )
+  | ECons x -> ( Syntax.ECVal ( x, [] ) )
   | ENum n -> ( Syntax.ENum n )
   | EWhere ( e, bs ) -> ( Syntax.ELet ( List.map ~f: ( pairMap  coreOfSurfacePat    coreOfSurfaceExp    ) bs, coreOfSurfaceExp    e ) )
   | EFun es -> ( EFcmp ( List.map ~f:coreOfSurfaceExp    es ) )
@@ -142,9 +133,9 @@ let rec coreOfSurfaceExp    ( normTyp  : Syntax.typ -> Syntax.typ ) : exp -> Syn
   | ECaseOf ( es', es ) -> ( Syntax. ( List.fold ~f: ( fun e e' -> EApp ( e, e' ) ) ~init: ( EFcmp ( List.map ~f:coreOfSurfaceExp    es ) ) ( List.map ~f:coreOfSurfaceExp    es' ) ) )
   | ETAppMany ( e, ts ) -> ( List.fold ~f: ( fun e t -> Syntax.ETApp ( e, coreOfSurfaceTyp    t ) ) ~init: ( coreOfSurfaceExp    e ) ts )
   | ELSec ( t, x, e ) -> ( let y = ( Typing.freshVar  () ) in
-                                                         Syntax. ( EAbs ( [ PVar ( y, coreOfSurfaceTyp    t ) ] , coreOfSurfaceExp    ( EApp ( EApp ( x, EVar [ y ] ) , e ) ) ) ) )
+                                                 Syntax. ( EAbs ( [ PVar ( y, coreOfSurfaceTyp    t ) ] , coreOfSurfaceExp    ( EApp ( EApp ( x, EVar y ) , e ) ) ) ) )
   | ERSec ( e, x, t ) -> ( let y = ( Typing.freshVar  () ) in
-                                                         Syntax. ( EAbs ( [ PVar ( y, coreOfSurfaceTyp    t ) ] , EApp ( EApp ( coreOfSurfaceExp    x, coreOfSurfaceExp    e ) , EVar y ) ) ) )
+                                                 Syntax. ( EAbs ( [ PVar ( y, coreOfSurfaceTyp    t ) ] , EApp ( EApp ( coreOfSurfaceExp    x, coreOfSurfaceExp    e ) , EVar y ) ) ) )
   | ELSecImp ( x, e ) -> ( Syntax. ( EApp ( EApp ( var "flip" , coreOfSurfaceExp    x ) , coreOfSurfaceExp    e ) ) )
   | ERSecImp ( e, x ) -> ( Syntax.EApp ( coreOfSurfaceExp    x, coreOfSurfaceExp    e ) )
   | ENil t -> ( Syntax. ( ETApp ( ECVal ( "Nil" , [] ) , coreOfSurfaceTyp    t ) ) )
@@ -160,7 +151,7 @@ and coreOfSurfacePat    ( normTyp  : Syntax.typ -> Syntax.typ ) : pat -> Syntax.
   | PAny t -> ( Syntax.PAny ( coreOfSurfaceTyp    t ) )
   | PVarNoBkt ( x, t )
   | PVar ( x, t ) -> ( Syntax.PVar ( x, coreOfSurfaceTyp    t ) )
-  | PCVal ( x, ts, ps ) -> ( Syntax.PCVal ( fromQName   x, List.map ~f:coreOfSurfaceTyp    ts, List.map ~f:coreOfSurfacePat    ps ) )
+  | PCVal ( x, ts, ps ) -> ( Syntax.PCVal ( x, List.map ~f:coreOfSurfaceTyp    ts, List.map ~f:coreOfSurfacePat    ps ) )
   | PListCons ( p, p' ) -> ( Syntax.PCVal ( "Cons" , [] , [ coreOfSurfacePat    p ; coreOfSurfacePat    p' ] ) )
   | PNil t -> ( Syntax.PCVal ( "Nil" , [ coreOfSurfaceTyp    t ] , [] ) )
   | PList ps -> ( Syntax. ( List.fold_right ~f: ( fun p ps -> PCVal ( "Cons" , [] , [ coreOfSurfacePat    p ; ps ] ) ) ~init: ( PCVal ( "Nil" , [] , [] ) ) ps ) )

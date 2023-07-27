@@ -31,8 +31,6 @@ open ParserCombinators
 
 open CommonParser
 
-module Out = OutputManager
-
 let checkEnd  = ( CommonParser. ( checkEnd  surfaceKeywords  ) )
 
 let varPExt   = ( varPExt   >>= checkEnd  )
@@ -52,7 +50,7 @@ and kndS  : Syntax.knd lazyParse =
         kstar ||| kbkt ) in
   lazy ( core () ) )
 
-let trailer = ( maybe ( txt "," ) >>> fun _ -> () )
+let trailer = ( maybe ( txt "," ) >>> ignore )
 
 let rec typ : SurfaceSyntax.typ lazyParse =
   ( let core () =
@@ -71,54 +69,21 @@ and typS  : SurfaceSyntax.typ lazyParse =
   ( let core () =
         ( let tvar = ( varP  >>> fun x -> SurfaceSyntax.TVar x )
             in let tany = ( txt "_" >>> fun _ -> SurfaceSyntax.TVar "_" )
-            in let tcval = ( qName  >>> fun c -> SurfaceSyntax.TCVal ( c, [] ) )
-            in let tunit = ( txt "()" >>> fun _ -> SurfaceSyntax.TCVal ( [ "Unit" ] , [] ) )
+            in let tcval = ( atomP  >>> fun c -> SurfaceSyntax.TCVal ( c, [] ) )
             in let ttpl = ( let proc = ( function
                                | [ t ] -> ( SurfaceSyntax.TBrackets t )
                                | ts -> ( SurfaceSyntax.TTpl ts ) ) in
                     parens ( commaSepList1    ( cache typ ) <== trailer ) >>> proc )
-            in let tlist = ( txt "[" ==> cache typ <== txt "]" >>> fun t -> SurfaceSyntax.TCVal ( [ "List" ] , [ t ] ) )
-            in let tarr = ( txt "(" ==> txt "->" <== txt ")" >>> fun _ -> SurfaceSyntax.TCVal ( [ "->" ] , [] ) ) in
-        tarr ||| tlist ||| tvar ||| tany ||| tcval ||| tunit ||| ttpl ) in
+            in let tlist = ( txt "[" ==> cache typ <== txt "]" >>> fun t -> SurfaceSyntax.TCVal ( "List" , [ t ] ) )
+            in let tarr = ( txt "(" ==> txt "->" <== txt ")" >>> fun _ -> SurfaceSyntax.TCVal ( "->" , [] ) ) in
+        tarr ||| tlist ||| tvar ||| tany ||| tcval ||| ttpl ) in
   lazy ( core () ) )
-
-let qTrmName   : SurfaceSyntax.qName parse =
-  ( let propQ = ( qName  <*= txt "." <*> varPExt   >>> fun ( xs, x ) -> xs @ [ x ] )
-      in let extOnly  = ( varPExt   >>> fun x -> [ x ] ) in
-  extOnly  ||| propQ )
-
-let compareOps  =
-  ( let core = [
-        "<" ;
-        ">" ;
-        "==" ;
-        "=/=" ;
-        ">=" ;
-        "=<" ;
-      ] in
-  StringSet.of_list core )
 
 let negNumberQ  s = ( Str.string_match ( Str.regexp "^-[0-9]+[kmb]?$" ) s 0 )
 
 let mixfixSpecs  = ( Syntax.Mixfix.defaultSpecs  )
 
-let numP  : Q.t parse =
-  ( let postProcess s = ( match ( Str.split ( Str.regexp_string "." ) s ) with
-                       | [ w ; f ] -> ( let d = ( Q.of_string ( "1" -- String.make ( String.length f ) '0' ) )
-                                          in let f' = ( Q. ( of_string f / d ) ) in
-                                      w &>
-                                        Q.of_string @>
-                                        Q. ( + ) f' @>
-                                        just )
-                       | [ w ] -> ( w &>
-                                        Q.of_string @>
-                                        just )
-                       | _ -> ( fail "Bad number." ) )
-      in let oldStyle = ( regexp ( Str.regexp "[0-9]+\\([.][0-9]+\\)?" ) >>= postProcess )
-      in let postProcess = ( function
-                       | ( Some _, n ) -> ( Q.neg n )
-                       | ( None, n ) -> ( n ) ) in
-  maybe ( txt "-" ) <*> oldStyle >>> postProcess )
+let numP  : Q.t parse = ( regexp ( Str.regexp "-?[0-9]+\\([.][0-9]+\\)?" ) >>> Q.of_string )
 
 let exp : SurfaceSyntax.exp lazyParse =
   ( let rec patExt  : SurfaceSyntax.pat lazyParse =
@@ -139,15 +104,15 @@ let exp : SurfaceSyntax.exp lazyParse =
         lazy ( core () ) )
       and patH  : SurfaceSyntax.pat lazyParse =
         ( let core () =
-              ( let pcsmp = ( qName  <=> many1Spaces   ( cache patS  ) >>> fun ( c, ps ) -> SurfaceSyntax.PCVal ( c, [] , ps ) )
-                  in let tapp = ( qName  <*= txt "{" <=> commaSepList1    ( cache typ ) <== txt "}" <=> many1Spaces   ( cache patS  ) >>> fun ( ( c, ts ) , ps ) -> SurfaceSyntax.PCVal ( c, ts, ps ) ) in
+              ( let pcsmp = ( atomP  <=> many1Spaces   ( cache patS  ) >>> fun ( c, ps ) -> SurfaceSyntax.PCVal ( c, [] , ps ) )
+                  in let tapp = ( atomP  <*= txt "{" <=> commaSepList1    ( cache typ ) <== txt "}" <=> many1Spaces   ( cache patS  ) >>> fun ( ( c, ts ) , ps ) -> SurfaceSyntax.PCVal ( c, ts, ps ) ) in
               tapp ||| pcsmp ||| cache patS  ) in
         lazy ( core () ) )
       and patS  : SurfaceSyntax.pat lazyParse =
         ( let core () =
               ( let pany = ( parens ( txt "_" ==> txt ":" ==> cache typ ) >>> fun t -> SurfaceSyntax.PAny t )
                   in let pvar = ( parens ( varPExt   <== txt ":" <=> cache typ ) >>> fun xt -> SurfaceSyntax.PVar xt )
-                  in let pcns = ( qName  >>> fun c -> SurfaceSyntax.PCVal ( c, [] , [] ) )
+                  in let pcns = ( atomP  >>> fun c -> SurfaceSyntax.PCVal ( c, [] , [] ) )
                   in let ptup = ( let proc = ( function
                                      | [ p ] -> ( SurfaceSyntax.PBrackets p )
                                      | ps -> ( SurfaceSyntax.PTup ps ) ) in
@@ -157,7 +122,7 @@ let exp : SurfaceSyntax.exp lazyParse =
                   in let pwhen = ( txt "`{" ==> cache exp <== txt "}" <*> maybe ( txt "{" ==> cache typ <== txt "}" ) >>> fun emt -> SurfaceSyntax.PWhen emt )
                   in let plist = ( txt "[" =!> commaSepList1    ( cache patExt  ) <== trailer <== txt "]" >>> fun ps -> SurfaceSyntax.PList ps )
                   in let pnil = ( txt "[{" =!> cache typ <== txt "}]" >>> fun t -> SurfaceSyntax.PNil t )
-                  in let tapp = ( qName  <*= txt "{" <!> commaSepList1    ( cache typ ) <== trailer <== txt "}" >>> fun ( c, ts ) -> SurfaceSyntax.PCVal ( c, ts, [] ) )
+                  in let tapp = ( atomP  <*= txt "{" <!> commaSepList1    ( cache typ ) <== trailer <== txt "}" >>> fun ( c, ts ) -> SurfaceSyntax.PCVal ( c, ts, [] ) )
                   in let pnum = ( numP  >>> fun n -> SurfaceSyntax.PNum n ) in
               pnum ||| tapp ||| pnil ||| plist ||| pany ||| pvar ||| pcns ||| ppred ||| ptup ||| pwhen ||| pexp ) in
         lazy ( core () ) )
@@ -179,9 +144,9 @@ let exp : SurfaceSyntax.exp lazyParse =
         ( let core () =
               ( let efcmp = ( cache expH  <== txt "<+" <=> repsepK  ( cache expH  <== just () ) ( txt "<+" <== just () ) >>> fun ( e, es ) -> SurfaceSyntax.EFcmp ( e :: es ) )
                   in let caseP  = ( let deconNoBrack   = ( repsepK  ( cache expH  <== just () ) ( txt "|" <== just () ) )
-                                     in let deconBrack  = ( parens ( repsep1  ( cache expH  <== just () ) ( txt "|" <== just () ) ) )
-                                     in let decon = ( deconBrack  ||| deconNoBrack   ) in
-                                 txt "case" =!> decon <== txt "of" <=> many1Spaces   ( cache expT  ) >>> fun eses' -> SurfaceSyntax.ECaseOf eses' ) in
+                               in let deconBrack  = ( parens ( repsep1  ( cache expH  <== just () ) ( txt "|" <== just () ) ) )
+                               in let decon = ( deconBrack  ||| deconNoBrack   ) in
+                           txt "case" =!> decon <== txt "of" <=> many1Spaces   ( cache expT  ) >>> fun eses' -> SurfaceSyntax.ECaseOf eses' ) in
               efcmp ||| cache efun ||| caseP  ||| cache expH  ) in
         lazy ( core () ) )
       and expH  : SurfaceSyntax.exp lazyParse =
@@ -226,23 +191,23 @@ let exp : SurfaceSyntax.exp lazyParse =
       and expT  : SurfaceSyntax.exp lazyParse =
         ( let core () =
               ( let app = ( let proc = ( function
-                                     | ( e, Some ts ) -> ( SurfaceSyntax.ETAppMany ( e, ts ) )
-                                     | ( e, None ) -> ( e ) ) in
-                          cache expS  <*> maybe ( txt "{" ==> commaSepList1    ( cache typ ) <== txt "}" ) >>> proc ) in
+                                   | ( e, Some ts ) -> ( SurfaceSyntax.ETAppMany ( e, ts ) )
+                                   | ( e, None ) -> ( e ) ) in
+                        cache expS  <*> maybe ( txt "{" ==> commaSepList1    ( cache typ ) <== txt "}" ) >>> proc ) in
               app ) in
         lazy ( core () ) )
       and expS  : SurfaceSyntax.exp lazyParse =
         ( let core () =
-              ( let evar = ( qTrmName   >>=
-                              function
-                              | [ "_" ] -> ( fail "invalid variable" )
-                              | [ s ] when negNumberQ  s -> ( fail "that's a number" )
-                              | xs -> ( just ( SurfaceSyntax.EVar xs ) ) )
-                  in let ecval = ( qName  >>> fun c -> SurfaceSyntax.ECons c )
+              ( let evar = ( varPExt   >>=
+                          function
+                          | "_" -> ( fail "invalid variable" )
+                          | s when negNumberQ  s -> ( fail "that's a number" )
+                          | x -> ( just ( SurfaceSyntax.EVar x ) ) )
+                  in let ecval = ( atomP  >>> fun c -> SurfaceSyntax.ECons c )
                   in let etup = ( let proc = ( function
-                                         | [ e ] -> ( SurfaceSyntax.EBrackets e )
-                                         | es -> ( SurfaceSyntax.ETup es ) ) in
-                              parens ( commaSepList1    ( cache exp ) <== trailer ) >>> proc )
+                                     | [ e ] -> ( SurfaceSyntax.EBrackets e )
+                                     | es -> ( SurfaceSyntax.ETup es ) ) in
+                          parens ( commaSepList1    ( cache exp ) <== trailer ) >>> proc )
                   in let enil = ( txt "[{" =!> cache typ <== txt "}]" >>> fun t -> SurfaceSyntax.ENil t )
                   in let elist = ( txt "[" =!> commaSepList1    ( cache exp ) <== trailer <== txt "]" >>> fun es -> SurfaceSyntax.EListLit es )
                   in let emap = ( ( txt "{m" ||| txt "{" ) =!> commaSepList1    ( cache expT  <== txt "|->" <=> cache exp ) <== trailer <== txt "}" >>> fun ps -> SurfaceSyntax.EMapLit ps )

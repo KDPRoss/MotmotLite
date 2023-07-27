@@ -31,8 +31,6 @@ open Syntax
 
 open Env.Convenience
 
-module Out = OutputManager
-
 exception EvalFailure
 
 type 'a evalResult = EFail of string
@@ -154,9 +152,9 @@ and eval ( g : exp Env.t ) ( e : exp ) : exp evalResult =
                           pushArgs  fs @>
                           flip delayPairs  [] @>
                           eval g ) ) )
-  | ETup [] -> ( let _ = ( Out.error "0-element tuples not allowed." ) in
+  | ETup [] -> ( let _ = ( print_endline "0-element tuples not allowed." ) in
                         raise EvalFailure )
-  | ETup [ e ] -> ( let _ = ( Out.error ( "1-element tuples not allowed (exp = `" -- CoreLineariser.showExp  e -- "`)." ) ) in
+  | ETup [ e ] -> ( let _ = ( print_endline ( "1-element tuples not allowed (exp = `" -- CoreLineariser.showExp  e -- "`)." ) ) in
                         raise EvalFailure )
   | ETup es -> ( mapM  ( eval g ) es >>= fun vs ->
                         ( return ( ETup vs ) ) )
@@ -174,7 +172,7 @@ and eval ( g : exp Env.t ) ( e : exp ) : exp evalResult =
   | ELet ( bs, e ) -> ( let bs' = ( let doOne  = ( function
                                                             | ( PVar ( x, _ ) , e ) -> ( let e' = ( ELazy ( ref ( e, Some Env.empty ) ) ) in
                                                                                   ( x, e' ) )
-                                                            | ( p, _ ) -> ( let _ = ( Out.error ( "Invalid destructuring pattern `" -- CoreLineariser.showPat  p -- "` in `let` / `while`; this ought to have been reduced to irrefutable binds!" ) ) in
+                                                            | ( p, _ ) -> ( let _ = ( print_endline ( "Invalid destructuring pattern `" -- CoreLineariser.showPat  p -- "` in `let` / `while`; this ought to have been reduced to irrefutable binds!" ) ) in
                                                                                   raise EvalFailure ) ) in
                                                List.map ~f:doOne  bs )
                             in let g' = ( let doOne  g ( x, e ) = ( g <+> x @-> e ) in
@@ -188,29 +186,29 @@ and eval ( g : exp Env.t ) ( e : exp ) : exp evalResult =
   | ECls ( [] , e, g' ) -> ( eval g' e )
   | EDely ( fvs, st ) -> ( match ( fvs ) with
                         | [] -> ( let _ = ( match ( st ) with
-                                                     | [] -> ( Out.warn "Failed: No context available for `resolve` failure; this is probably an implementation bug!" )
+                                                     | [] -> ( print_endline "Failed: No context available for `resolve` failure; this is probably an implementation bug!" )
                                                      | _ -> ( let patsString  = ( function
                                                                                  | ECls ( ps, _, _ ) -> ( concatMap  CoreLineariser.showPat  ", " ps )
                                                                                  | _ -> ( "<patterns-unavailable>" ) )
-                                                                 in let one ( f, vs ) = ( let f _ = ( let expString  = ( concatMap  CoreLineariser.showExp  ", " vs ) in
-                                                                                           "Failed: `resolve(" -- patsString  f -- " <- " -- expString  -- ")`" ) in
-                                                                                 Out.warnClosure  f )
+                                                                 in let one ( f, vs ) = ( let s = ( let expString  = ( concatMap  CoreLineariser.showExp  ", " vs ) in
+                                                                                         "Failed: `resolve(" -- patsString  f -- " <- " -- expString  -- ")`" ) in
+                                                                                 print_endline s )
                                                                  in let ( allSame,  vs ) = ( match ( List.map ~f:snd st ) with
                                                                                   | [ vs ] -> ( ( false, vs ) )
                                                                                   | vs :: vss -> ( ( List.for_all ~f: ( fun vs' -> vs = vs' ) vss, vs ) )
                                                                                   | [] -> ( ( false, [] ) ) )
                                                                  in let _ = ( if ( allSame  )
-                                                                                     then ( let _ = ( let f _ = ( let expString  = ( concatMap  CoreLineariser.showExp  ", " vs ) in
-                                                                                                                     "Failed: `resolve(_ <- " -- expString  -- ")`" ) in
-                                                                                                           Out.warnClosure  f )
-                                                                                              in let onePats  f = ( Out.warnClosure  ( fun _ -> "    " -- patsString  f ) ) in
+                                                                                     then ( let _ = ( let f = ( let expString  = ( concatMap  CoreLineariser.showExp  ", " vs ) in
+                                                                                                                   "Failed: `resolve(_ <- " -- expString  -- ")`" ) in
+                                                                                                           print_endline f )
+                                                                                              in let onePats  f = ( print_endline ( "    " -- patsString  f ) ) in
                                                                                           st &>
                                                                                             List.iter ~f: (
                                                                                               fst @>
                                                                                               onePats
                                                                                             ) )
                                                                                      else ( List.iter ~f:one st ) ) in
-                                                             Out.warn "----------------------------------------" ) ) in
+                                                             print_endline "----------------------------------------" ) ) in
                                              fail "Empty list in `evalOrDelay`!" )
                         | ( f, vs ) :: fvs' -> ( let resolve ( f, vs ) =
                                                    ( match ( f ) with
@@ -276,10 +274,10 @@ and eval ( g : exp Env.t ) ( e : exp ) : exp evalResult =
   | EMap _ as v -> ( return v ) )
 
 and beNotLazy   = ( let eval g e = ( match ( eval g e ) with
-                                 | EFail s -> ( let _ = ( Out.error s ) in
+                                 | EFail s -> ( let _ = ( print_endline s ) in
                                               raise EvalFailure )
                                  | ESucc v -> ( v )
-                                 | EUnkn -> ( let _ = ( Out.error "Leaked `EUnkn`; this is an implementation bug!" ) in
+                                 | EUnkn -> ( let _ = ( print_endline "Leaked `EUnkn`; this is an implementation bug!" ) in
                                               raise EvalFailure ) ) in
                   function
                   | ETup vs -> ( ETup ( List.map ~f:beNotLazy   vs ) )
@@ -298,13 +296,12 @@ and beNotLazy   = ( let eval g e = ( match ( eval g e ) with
                   | v -> ( v ) )
 
 let eval g e =
-  ( let ( eval, beNotLazy   ) = ( ( eval, beNotLazy   ) )
-      in let eval g e = ( match ( eval g e ) with
-                            | EFail s -> ( let _ = ( Out.error s ) in
-                                         raise EvalFailure )
-                            | ESucc v -> ( v )
-                            | EUnkn -> ( let _ = ( Out.error "Leaked `EUnkn`; this is an implementation bug!" ) in
-                                         raise EvalFailure ) ) in
+  ( let eval g e = ( match ( eval g e ) with
+                 | EFail s -> ( let _ = ( print_endline s ) in
+                              raise EvalFailure )
+                 | ESucc v -> ( v )
+                 | EUnkn -> ( let _ = ( print_endline "Leaked `EUnkn`; this is an implementation bug!" ) in
+                              raise EvalFailure ) ) in
   e &>
     eval g @>
     beNotLazy   )

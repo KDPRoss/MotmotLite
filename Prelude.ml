@@ -51,7 +51,7 @@ let subCore  = ( twoArgSimpCore    numPack  Q. ( - ) )
 let mulCore  = ( twoArgSimpCore    numPack  Q. ( * ) )
 
 let divCore  = ( let divCore  x y = ( if ( Q.zero = y )
-                                     then ( userFailureInvalidArg    "Division by zero" [ ENum x ; ENum y ] None )
+                                     then ( userFailureInvalidArg    "Division by zero." [ ENum x ; ENum y ] None )
                                      else ( Q. ( x / y ) ) ) in
                twoArgSimpCore    numPack  divCore  )
 
@@ -64,7 +64,7 @@ let eqCore  v1 v2 =
 let compareCoreGen   fNum  v1 v2 =
   ( match ( ( v1, v2 ) ) with
   | ( ENum n1, ENum n2 ) -> ( boolToInternal   ( fNum  n1 n2 ) )
-  | _ -> ( userFailureInvalidArg    "Incomparable syntactic class" [ v1 ; v2 ] None ) )
+  | _ -> ( dynFail  "Invalid number(s)." [ v1 ; v2 ] ) )
 
 let ltCore  = ( compareCoreGen   Q.lt )
 
@@ -80,13 +80,13 @@ let mapAddCore   e1 e2 =
                                            forceEqable  @>
                                            PolyMap.remove m ) in
                                 EMap ( PolyMap.add_exn m' ~key:k ~data:v ) )
-  | ( m, kv ) -> ( dynFail  "Invalid map / pair" [ m ; kv ] ) )
+  | ( m, kv ) -> ( dynFail  "Invalid map / pair." [ m ; kv ] ) )
 
 let mapRemCore   e1 k =
   ( match ( e1 ) with
   | EMap m -> ( let _ = ( forceEqable  k ) in
               EMap ( PolyMap.remove m k ) )
-  | v -> ( dynFail  "Invalid map" [ v ] ) )
+  | v -> ( dynFail  "Invalid map." [ v ] ) )
 
 let mapFindCore   e1 k =
   ( match ( e1 ) with
@@ -95,12 +95,12 @@ let mapFindCore   e1 k =
                      PolyMap.find m ) with
               | Some v -> ( ECVal ( "Just" , [ v ] ) )
               | None -> ( ECVal ( "Nothing" , [] ) ) )
-  | v -> ( dynFail  "Invalid map" [ v ] ) )
+  | v -> ( dynFail  "Invalid map." [ v ] ) )
 
 let makeMapCore   e =
   ( let one = ( function
                      | ETup [ x ; y ] -> ( ( forceEqable  x, y ) )
-                     | v -> ( dynFail  "Bad tuple in `makeMapCore`" [ v ] ) )
+                     | v -> ( dynFail  "Invalid tuple." [ v ] ) )
       in let add m ( k, v ) = ( match ( PolyMap.find m k ) with
                      | Some _ -> ( m )
                      | None -> ( PolyMap.add_exn m ~key:k ~data:v ) )
@@ -119,7 +119,7 @@ let fromMapCore   e =
                   fun ( k, v ) ->
                     ETup [ k ; v ]
                 ) @> listToInternal   )
-  | v -> ( dynFail  "Invalid map" [ v ] ) )
+  | v -> ( dynFail  "Invalid map." [ v ] ) )
 
 let minPreludeTerm   =
   ( let parseExp  = ( SurfaceParser.expExt  @>
