@@ -4,3 +4,5 @@ _build/**
 MotmotLite*
 !MotmotLite.ml
 \#*
+*.tgz
+

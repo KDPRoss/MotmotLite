@@ -2,13 +2,14 @@
 
 BUILD_DIR=_build
 EXEC=MotmotLite
+DOCKER_ARCHIVE=motmot-lite-docker.tgz
 
 
 
 # -- ===== Top-Level Targets ===== --
 
 .PHONY: default
-default: clean build test
+default: clean build run run-docker test
 
 .PHONY: build
 build: $(EXEC)
@@ -16,6 +17,11 @@ build: $(EXEC)
 .PHONY: run
 run: build
 	rlwrap ./$(EXEC)
+
+.PHONY: run-docker
+run-docker: $(DOCKER_ARCHIVE)
+	docker import $(DOCKER_ARCHIVE) && \
+	docker run -it motmotlite /motmot
 
 .PHONY: test
 test: $(EXEC)
@@ -29,6 +35,9 @@ $(EXEC): *.ml
 	rm -f $(EXEC) \#*
 	dune build ./$(EXEC).exe --release && \
 	ln -s _build/default/$(EXEC).exe $(EXEC)
+
+$(DOCKER_ARCHIVE):
+	./build-docker-container.sh
 
 
 
