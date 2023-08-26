@@ -1,5 +1,6 @@
 _build/**
 .merlin
+.ocamlformat
 MotmotLite*
 !MotmotLite.ml
 \#*
