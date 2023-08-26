@@ -1,7 +1,13 @@
 Tests for MotmotLite.
 
+(Strange `echo` invocation avoids problems where -- on some
+distros -- I got a version of `echo` that did not support
+`-e` (and, instead, printed the flag literally). I suspect
+that a shell built-in was shadowing the executable, but I
+did not investigate terribly hard.)
+
 Loading some code is about the most testing that we can do!
-  $ echo -e ":file $TESTDIR/Demo.mot\n:quit\n" | $TESTDIR/MotmotLite | grep -v 'Ought to load' | grep -v 'lines from'
+  $ $( which echo ) -e ":file $TESTDIR/Demo.mot\n:quit\n" | $TESTDIR/MotmotLite | grep -v 'Ought to load' | grep -v 'lines from'
   * (glob)
   Copyright 2023, K.D.P.Ross <KDPRoss@gmail.com>
   
