@@ -45,4 +45,4 @@ $(DOCKER_ARCHIVE):
 
 .PHONY: clean
 clean:
-	rm -rf *.cache *cmi *cmo *.cmi *.cmx *.o *~ \#* *.tex *.log *.dvi *.bbl *.aux *.ps *.blg *.pdf *.bak *.cache $(EXEC) $(BUILD_DIR)
+	rm -rf *.cache *cmi *cmo *.cmi *.cmx *.o *~ \#* *.tex *.log *.dvi *.bbl *.aux *.ps *.blg *.pdf *.bak *.cache $(EXEC) $(BUILD_DIR) $(DOCKER_ARCHIVE)
