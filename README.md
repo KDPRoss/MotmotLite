@@ -54,6 +54,8 @@ I created MotmotLite for a few reasons:
 
 ## How do you run MotmotLite?
 
+### Option 1: Run on bare metal
+
 * Clone this repository.
 * Set up `opam`:
   * Install `opam` via whatever your package system is
@@ -74,7 +76,27 @@ I created MotmotLite for a few reasons:
     * You'll need `cram`, which you may be able to install
       via your package manager ... or via the horrors of
       Python / `pip`.
+      * On Arch-based Linux: `pacman -S cram`
     * `make test`
+
+### Option 2: Run in Docker
+
+* Clone this repository.
+* Install / start Docker via whatever your package /
+  service-management systems are.
+  * On Arch-based Linux:
+    * `pacman -S docker`
+    * `systemctl start docker`
+    * `systemctl enable docker` (optional)
+* `make run-docker` which will:
+  * Spin up an Alpine Linux container
+  * Copy a build script into the container and run it which
+    will:
+    * Install relevant GNU/Linux packages (including `opam`)
+    * Set up `opam` and install relevant OCaml packages
+    * Build MotmotLite
+  * Archive the container to a `.tgz`
+  * Run the container and start up MotmotLite
 
 ### What can the interpreter can do?
 
