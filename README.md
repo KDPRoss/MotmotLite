@@ -6,9 +6,20 @@ whatsoever) based upon Motmot. It is a purely-functional,
 call-by-pattern language based on composing partial
 functions. Good luck; have fun!
 
-## Why Should You Use MotmotLite?
+## What is a Motmot?
 
-If you have to ask ... the answer is probably 'nupe'.
+* noun. A
+  [family of pretty neotropical birds](https://en.wikipedia.org/wiki/Motmot).
+  * (For a fascinating time, have a look into the 'racket
+    feathers' of the tails.)
+* noun. A purely-functional programming language.
+  * (For a fascinating time, implement anything in
+    MotmotLite.)
+
+## Why should you use MotmotLite?
+
+If you have to ask ... the answer is probably 'you should
+not'.
 
 ChatGPT describes MotmotLite:[^0]
 
@@ -23,17 +34,25 @@ ChatGPT describes MotmotLite:[^0]
       OpenAI ... or anyone else. Neither Motmot nor
       MotmotLite actually has dependent types.
 
-## What is a Motmot?
+## Why does MotmotLite exist?
 
-* noun. A
-  [family of pretty neotropical birds](https://en.wikipedia.org/wiki/Motmot).
-  * (For a fascinating time, have a look into the 'racket
-    feathers' of the tails.)
-* noun. A purely-functional programming language.
-  * (For a fascinating time, implement anything in
-    MotmotLite.)
+I created MotmotLite for a few reasons:
 
-## Running It
+* I wanted a smaller language than Motmot that I could teach
+  to ChatGPT to assess its capabilities at reasoning about
+  novel programming languages.
+* A smaller codebase is more amenable for experimentation
+  and tinkering; I have already used MotmotLite as the
+  starting point for prototyping other languages and
+  interpreters.
+* Motmot (and, by extension, MotmotLite) is, in some sense,
+  an encoding of some portion of my model of the world. In
+  just the same way that all images are self-portraits and
+  all novels autobiographies, so, too, are all programming
+  languages reflections of their creators. As such, this is
+  a project of conceptual self-expression.
+
+## How do you run MotmotLite?
 
 * Clone this repository.
 * Set up `opam`:
@@ -57,12 +76,22 @@ ChatGPT describes MotmotLite:[^0]
       Python / `pip`.
     * `make test`
 
-### Things that the Interpreter Can Do
+### What can the interpreter can do?
 
 * Read the help that the interpreter provides at start-up.
 * See [the demo code](./Demo.mot).
 
-## Comparison with Motmot
+### Why does the code say that it's generated?
+
+The code is, indeed, generated. The source is written in NG,
+my indentation-sensitive dialect of OCaml, and then compiled
+to OCaml, then formatted with `ocamlformat`. Because the NG
+compiler is not released -- and to avoid needless
+dependencies -- I've chosen to release the generated OCaml
+output, which can be used with ordinary / publicly-available
+OCaml and GNU-based tooling.
+
+## How does MotmotLite compare with Motmot?
 
 ### Logistics / Implementation
 
@@ -182,7 +211,7 @@ ChatGPT describes MotmotLite:[^0]
 | Variable         | [X]    | [X]        |
 | Wildcard         | [X]    | [X]        |
 
-## Further Links / Resources
+## Where can you find further information / resources?
 
 * Related languages:
   * [CamlLite](https://caml.inria.fr/caml-light/)
