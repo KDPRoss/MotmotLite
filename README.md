@@ -13,26 +13,25 @@ functions. Good luck; have fun!
   * (For a fascinating time, have a look into the 'racket
     feathers' of the tails.)
 * noun. A purely-functional programming language.
-  * (For a fascinating time, implement anything in
-    MotmotLite.)
+  * (For a fascinating time, implement anything in MotmotLite.)
 
 ## Why should you use MotmotLite?
 
-If you have to ask ... the answer is probably 'you should
-not'.
+If you have to ask … the answer is probably ‘you should
+not’.
 
 ChatGPT describes MotmotLite:[^0]
 
 > Motmot[Lite] is a theoretical language that resembles a
 > simplified form of Haskell, with notable aspects of other
-> functional languages like ML ... It includes some unique
+> functional languages like ML … It includes some unique
 > characteristics and syntax, and it is generally meant to
 > illustrate concepts related to type systems, pattern
 > matching, and lambda calculus.
 
 [^0]: The views of ChatGPT may not reflect those of
-      OpenAI ... or anyone else. Neither Motmot nor
-      MotmotLite actually has dependent types.
+OpenAI … or anyone else. Neither Motmot nor MotmotLite
+actually has dependent types.
 
 ## Why does MotmotLite exist?
 
@@ -41,16 +40,15 @@ I created MotmotLite for a few reasons:
 * I wanted a smaller language than Motmot that I could teach
   to ChatGPT to assess its capabilities at reasoning about
   novel programming languages.
-* A smaller codebase is more amenable for experimentation
-  and tinkering; I have already used MotmotLite as the
-  starting point for prototyping other languages and
-  interpreters.
-* Motmot (and, by extension, MotmotLite) is, in some sense,
-  an encoding of some portion of my model of the world. In
-  just the same way that all images are self-portraits and
-  all novels autobiographies, so, too, are all programming
-  languages reflections of their creators. As such, this is
-  a project of conceptual self-expression.
+* A smaller codebase is more amenable for experimentation and
+  tinkering; I have already used MotmotLite as the starting
+  point for prototyping other languages and interpreters.
+* Motmot (and, by extension, MotmotLite) is, in some sense, an
+  encoding of some portion of my model of the world. In just
+  the same way that all images are self-portraits and all
+  novels autobiographies, so, too, are all programming
+  languages reflections of their creators. As such, this is a
+  project of conceptual self-expression.
 
 ## How do you run MotmotLite?
 
@@ -66,16 +64,16 @@ I created MotmotLite for a few reasons:
     * `opam switch ocaml-base-compiler.4.14.1`
     * `eval $(opam env)`
     * `opam install core extlib zarith`
-      * You *may* need to install some system packages
-        (e.g., GMP); you're on your own there!
+      * You *may* need to install some system packages (e.g., GMP);
+        you're on your own there!
 * Build it: `make build`
 * Run it:
   * Install `rlwrap` (optional, technically)
   * `make run` (or just `./MotmotLite`)
   * Run the tests (optional)
-    * You'll need `cram`, which you may be able to install
-      via your package manager ... or via the horrors of
-      Python / `pip`.
+    * You'll need `cram`, which you may be able to install via
+      your package manager … or via the horrors of Python /
+      `pip`.
       * On Arch-based Linux: `pacman -S cram`
     * `make test`
 
@@ -108,8 +106,8 @@ I created MotmotLite for a few reasons:
 The code is, indeed, generated. The source is written in NG,
 my indentation-sensitive dialect of OCaml, and then compiled
 to OCaml, then formatted with `ocamlformat`. Because the NG
-compiler is not released -- and to avoid needless
-dependencies -- I've chosen to release the generated OCaml
+compiler is not released—and to avoid needless
+dependencies—I've chosen to release the generated OCaml
 output, which can be used with ordinary / publicly-available
 OCaml and GNU-based tooling.
 
@@ -144,26 +142,24 @@ OCaml and GNU-based tooling.
 | Tested                                | [X]    | [-] [^4]   |
 
 [^1]: As a linguistic toy, MotmotLite isn't actually
-      useful / useable. It may not be extended or employed
-      for any purpose other than for study, entertainment,
-      or to create further linguistic toys that are so
-      licensed. You may not use MotmotLite if you have
-      unkind or unjoyous thoughts in your mind. MotmotLite
-      exists to promote peace, love, and functional
-      programming.
+useful / usable. It may not be extended or employed for any
+purpose other than for study, entertainment, or to create
+further linguistic toys that are so licensed. You may not
+use MotmotLite if you have unkind or unjoyous thoughts in
+your mind. MotmotLite exists to promote peace, love, and
+functional programming.
 
 [^2]: Via Motmot's Emacs mode.
 
 [^3]: The MotmotLite release is in the OCaml compiled from
-      the NG source.
+the NG source.
 
 [^4]: MotmotLite nominally has a `cram`-based test file, but
-      it has <1% the test coverage that Motmot has. However,
-      given that much of the code was Motmot-sourced, one
-      could make a (fairly-weak) argument that the code in
-      MotmotLite has been covered extensively by the Motmot
-      tests that existed when the code was extracted /
-      forked.
+it has <1% the test coverage that Motmot has. However, given
+that much of the code was Motmot-sourced, one could make a
+(fairly-weak) argument that the code in MotmotLite has been
+covered extensively by the Motmot tests that existed when
+the code was extracted / forked.
 
 ### Data Types
 
@@ -180,15 +176,14 @@ OCaml and GNU-based tooling.
 | Trees [^6]              | [X]    | [ ]        |
 
 [^5]: These are purely-functional arrays, based on Okasaki's
-      work; as such they're really more 'arrays' than arrays
-      (i.e., they don't support constant-time operations but
-      log-time ones.).
+work; as such they're really more ‘arrays’ than arrays
+(i.e., they don't support constant-time operations but
+log-time ones.).
 
 [^6]: Trees are a legacy of Motmot's Tanager-based heritage.
-      They are 'semi-typed', arity-polymorphic ADTs that
-      exist in a separate namespace to data constructors
-      with the express goal of supporting System-S-based
-      term rewriting.
+They are ‘semi-typed’, arity-polymorphic ADTs that exist
+in a separate namespace to data constructors with the
+express goal of supporting System-S-based term rewriting.
 
 ### Language Features
 
@@ -214,8 +209,8 @@ OCaml and GNU-based tooling.
 | User-defined data types                        | [X]    | [ ]        |
 | User-defined mixfix syntax                     | [X]    | [ ]        |
 
-[^7]: Motmot's `try`-`recover` is similar to exception
-      handling in other languages but subtly distinct.
+[^7]: Motmot's `try`–`recover` is similar to exception
+handling in other languages but subtly distinct.
 
 ### Pattern Styles
 
@@ -237,7 +232,7 @@ OCaml and GNU-based tooling.
 
 * Related languages:
   * [CamlLite](https://caml.inria.fr/caml-light/)
-  * Codeine / Codeine'
+  * Codeine / Codeine′
   * [Erlang](https://en.wikipedia.org/wiki/Erlang_(programming_language))
   * [F#](https://en.wikipedia.org/wiki/F_Sharphttps://github.com/KDPRoss/Sisserouedia.org/wiki/Purely_functional_programming)
   * [Haskell](https://www.haskell.org/ghc/)
