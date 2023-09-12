@@ -181,7 +181,7 @@ Loading some code is about the most testing that we can do!
   Has type: `Num`.
   Value: `11`.
   
-  Processing `add-corresponding-elements [ 1, 2 ] [ 3, 4, 5, 6, 7 ] where (add-corresponding-elements : [ Num ] -> [ Num ] -> [ Num ]) = fun (_ : [ Num ] | [{ Num }] ~ [{ Num }]) ([{ Num }] ~ _ : [ Num ] ~ [{ Num }]) ((m : Num) :: (ms : [ Num ]) ~ (n : Num) :: (ns : [ Num ]) ~ (m + n) :: add-corresponding-elements ms ns)`.
+  Processing `add-corresponding-elements [ 1, 2 ] [ 3, 4, 5, 6, 7 ] where add-corresponding-elements : [ Num ] -> [ Num ] -> [ Num ] = fun (_ : [ Num ] | [{ Num }] ~ [{ Num }]) ([{ Num }] ~ _ : [ Num ] ~ [{ Num }]) ((m : Num) :: (ms : [ Num ]) ~ (n : Num) :: (ns : [ Num ]) ~ (m + n) :: add-corresponding-elements ms ns)`.
   Parsed: `let (add-corresponding-elements : [ Num ] -> [ Num ] -> [ Num ]) = (((_ : [ Num ]) | Nil{ Num } ~ Nil{ Num }) <+ (Nil{ Num } ~ (_ : [ Num ]) ~ Nil{ Num }) <+ (Cons (m : Num) (ms : [ Num ]) ~ Cons (n : Num) (ns : [ Num ]) ~ (m + n) :: add-corresponding-elements ms ns)) in add-corresponding-elements [ 1, 2 ] [ 3, 4, 5, 6, 7 ]`.
   Has type: `[ Num ]`.
   Value: `[ 4, 6 ]`.
@@ -207,7 +207,7 @@ Loading some code is about the most testing that we can do!
   Value; `<fun>`.
   Binding `fib-naive` has been created.
   
-  Processing `fib-memo : Num -> Num = n : Num ~ v where (v : Num, _ : Map Num Num) = core { 0 |-> 1, 1 |-> 1 } n | (core : Map Num Num -> Num -> (Num, Map Num Num)) = m : Map Num Num ~ n : Num ~ case m >+> n of (Just (n' : Num) ~ (n', m)) (Nothing{ Num } ~ (n', m''') where (n' : Num) = l + r | (m''' : Map Num Num) = m'' <+> n |-> n' | (l : Num, m' : Map Num Num) = core m (n - 2) | (r : Num, m'' : Map Num Num) = core m' (n - 1) )`.
+  Processing `fib-memo : Num -> Num = n : Num ~ v where (v : Num, _ : Map Num Num) = core { 0 |-> 1, 1 |-> 1 } n | (core : Map Num Num -> Num -> (Num, Map Num Num)) = m : Map Num Num ~ n : Num ~ case m >+> n of (Just (n' : Num) ~ (n', m)) (Nothing{ Num } ~ (n', m''') where n' : Num = l + r | m''' : Map Num Num = m'' <+> n |-> n' | (l : Num, m' : Map Num Num) = core m (n - 2) | (r : Num, m'' : Map Num Num) = core m' (n - 1) )`.
   Parsed: `fib-memo : Num -> Num = (n : Num) ~ let ((v : Num), (_ : Map Num Num)) = core (list->map [ (0, 1), (1, 1) ]) n | (core : Map Num Num -> Num -> (Num, Map Num Num)) = ((m : Map Num Num) ~ (n : Num) ~ ((Just (n' : Num) ~ (n', m)) <+ (Nothing{ Num } ~ let (n' : Num) = (l + r) | (m''' : Map Num Num) = (m'' <+> (n |-> n')) | ((l : Num), (m' : Map Num Num)) = core m (n - 2) | ((r : Num), (m'' : Map Num Num)) = core m' (n - 1) in (n', m'''))) (m >+> n)) in v
   Has type: `Num -> Num`.
   Value; `<fun>`.
@@ -224,17 +224,17 @@ Loading some code is about the most testing that we can do!
   Value; `<fun>`.
   Binding `poly-pair` has been created.
   
-  Processing `funny-games where (funny-games : (a : *) => (b : *) => a -> b) = (a : *) => (b : *) => x : a ~ funny-games{ _, b } x`.
+  Processing `funny-games where funny-games : (a : *) => (b : *) => a -> b = (a : *) => (b : *) => x : a ~ funny-games{ _, b } x`.
   Parsed: `let (funny-games : (a : *) => (b : *) => a -> b) = ((a : *) => (b : *) => (x : a) ~ funny-games{ _, b } x) in funny-games`.
   Has type: `(a : *) => (b : *) => a -> b`.
   Value: `<fun>`.
   
-  Processing `(sq-list [ 2, 4 ], comp-list [ True, False ]) where (my-map : (a : *) => (a -> a) -> [ a ] -> [ a ]) = (a : *) => fun (_ : a -> a | [{ a }] ~ [{ a }]) (f : a -> a ~ (l : a) :: (ls : [ a ]) ~ f l :: my-map f ls) | (sq-list : [ Num ] -> [ Num ]) = my-map (x : Num ~ x * x) | (comp-list : [ Bool ] -> [ Bool ]) = my-map not`.
+  Processing `(sq-list [ 2, 4 ], comp-list [ True, False ]) where my-map : (a : *) => (a -> a) -> [ a ] -> [ a ] = (a : *) => fun (_ : a -> a | [{ a }] ~ [{ a }]) (f : a -> a ~ (l : a) :: (ls : [ a ]) ~ f l :: my-map f ls) | sq-list : [ Num ] -> [ Num ] = my-map (x : Num ~ x * x) | comp-list : [ Bool ] -> [ Bool ] = my-map not`.
   Parsed: `let (my-map : (a : *) => (a -> a) -> [ a ] -> [ a ]) = ((a : *) => ((_ : a -> a) | Nil{ a } ~ Nil{ a }) <+ ((f : a -> a) ~ Cons (l : a) (ls : [ a ]) ~ f l :: my-map f ls)) | (sq-list : [ Num ] -> [ Num ]) = my-map ((x : Num) ~ x * x) | (comp-list : [ Bool ] -> [ Bool ]) = my-map not in (sq-list [ 2, 4 ], comp-list [ True, False ])`.
   Has type: `([ Num ], [ Bool ])`.
   Value: `([ 4, 16 ], [ False, True ])`.
   
-  Processing `map-cps : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] = (a : *) => (b : *) => f : a -> b ~ loop id{ [ b ] } where (loop : (c : *) => ([ b ] -> c) -> [ a ] -> c) = (c : *) => k : [ b ] -> c ~ fun ([{ a }] ~ k [{ b }]) ((x : a) :: (xs : [ a ]) ~ loop k' xs where (k' : [ b ] -> c) = ys : [ b ] ~ k (f x :: ys) )`.
+  Processing `map-cps : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] = (a : *) => (b : *) => f : a -> b ~ loop id{ [ b ] } where loop : (c : *) => ([ b ] -> c) -> [ a ] -> c = (c : *) => k : [ b ] -> c ~ fun ([{ a }] ~ k [{ b }]) ((x : a) :: (xs : [ a ]) ~ loop k' xs where k' : [ b ] -> c = ys : [ b ] ~ k (f x :: ys) )`.
   Parsed: `map-cps : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] = (a : *) => (b : *) => (f : a -> b) ~ let (loop : (c : *) => ([ b ] -> c) -> [ a ] -> c) = ((c : *) => (k : [ b ] -> c) ~ (Nil{ a } ~ k (Nil{ b })) <+ (Cons (x : a) (xs : [ a ]) ~ let (k' : [ b ] -> c) = ((ys : [ b ]) ~ k (f x :: ys)) in loop k' xs)) in loop (id{ [ b ] })
   Has type: `(a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ]`.
   Value; `<fun>`.
@@ -246,11 +246,11 @@ Loading some code is about the most testing that we can do!
   Value; `<fun>`.
   Binding `map-naive` has been created.
   
-  Processing `map-naive f xs == map-cps f xs where (f : Num -> Num) = _ + 3 | (xs : [ Num ]) = [ 1, 17, 12 ]`.
+  Processing `map-naive f xs == map-cps f xs where f : Num -> Num = _ + 3 | xs : [ Num ] = [ 1, 17, 12 ]`.
   Parsed: `let (f : Num -> Num) = flip (+) 3 | (xs : [ Num ]) = [ 1, 17, 12 ] in map-naive f xs == map-cps f xs`.
   Has type: `Bool`.
   Value: `True`.
   
-  Successfully loaded * created bindings `fib-memo`, `fib-naive`, `map-cps`, `map-naive`, `poly-pair`. (glob)
+  Successfully loaded `/home/royal/royal/projects/motmot-lite/dist/Demo.mot`; created bindings `fib-memo`, `fib-naive`, `map-cps`, `map-naive`, `poly-pair`.
   
   #> Goodbye!

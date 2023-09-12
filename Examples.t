@@ -250,30 +250,30 @@ Loading some code is about the most testing that we can do!
   Has type: `Num`.
   Value: `6`.
   
-  Processing `id{ [ [ Num ] ] } (mapPoly{ Num, [ Num ] } (id{ Num -> [ Num ] } list{ Num }) [ 5, 2, 1 ]) where (list : (a : *) => a -> [ a ]) = (a : *) => x : a ~ [ x ]`.
+  Processing `id{ [ [ Num ] ] } (mapPoly{ Num, [ Num ] } (id{ Num -> [ Num ] } list{ Num }) [ 5, 2, 1 ]) where list : (a : *) => a -> [ a ] = (a : *) => x : a ~ [ x ]`.
   Parsed: `let (list : (a : *) => a -> [ a ]) = ((a : *) => (x : a) ~ [ x ]) in id{ [ [ Num ] ] } (mapPoly{ Num, [ Num ] } (id{ Num -> [ Num ] } (list{ Num })) [ 5, 2, 1 ])`.
   Has type: `[ [ Num ] ]`.
   Value: `[ [ 5 ], [ 2 ], [ 1 ] ]`.
   
-  Processing `fac : Num -> Num = fac-core 1 where (fac-core : Num -> Num -> Num) = acc : Num ~ fun (0 ~ acc) (n : Num ~ fac-core (n * acc) (n - 1))`.
+  Processing `fac : Num -> Num = fac-core 1 where fac-core : Num -> Num -> Num = acc : Num ~ fun (0 ~ acc) (n : Num ~ fac-core (n * acc) (n - 1))`.
   Parsed: `fac : Num -> Num = let (fac-core : Num -> Num -> Num) = ((acc : Num) ~ ({(==) 0} ~ acc) <+ ((n : Num) ~ fac-core (n * acc) (n - 1))) in fac-core 1
   Has type: `Num -> Num`.
   Value; `<fun>`.
   Binding `fac` has been created.
   
-  Processing `concat : (a : *) => [ a ] -> [ a ] -> [ a ] = (a : *) => xs : [ a ] ~ ys : [ a ] ~ loop xs where (loop : [ a ] -> [ a ]) = fun ([{ a }] ~ ys) ((x : a) :: (xs : [ a ]) ~ x :: loop xs)`.
+  Processing `concat : (a : *) => [ a ] -> [ a ] -> [ a ] = (a : *) => xs : [ a ] ~ ys : [ a ] ~ loop xs where loop : [ a ] -> [ a ] = fun ([{ a }] ~ ys) ((x : a) :: (xs : [ a ]) ~ x :: loop xs)`.
   Parsed: `concat : (a : *) => [ a ] -> [ a ] -> [ a ] = (a : *) => (xs : [ a ]) ~ (ys : [ a ]) ~ let (loop : [ a ] -> [ a ]) = ((Nil{ a } ~ ys) <+ (Cons (x : a) (xs : [ a ]) ~ x :: loop xs)) in loop xs
   Has type: `(a : *) => [ a ] -> [ a ] -> [ a ]`.
   Value; `<fun>`.
   Binding `concat` has been created.
   
-  Processing `reverse : (a : *) => [ a ] -> [ a ] = (a : *) => loop where (loop : [ a ] -> [ a ]) = fun ([{ a }] ~ [{ a }]) ((x : a) :: (xs : [ a ]) ~ concat (loop xs) [ x ])`.
+  Processing `reverse : (a : *) => [ a ] -> [ a ] = (a : *) => loop where loop : [ a ] -> [ a ] = fun ([{ a }] ~ [{ a }]) ((x : a) :: (xs : [ a ]) ~ concat (loop xs) [ x ])`.
   Parsed: `reverse : (a : *) => [ a ] -> [ a ] = (a : *) => let (loop : [ a ] -> [ a ]) = ((Nil{ a } ~ Nil{ a }) <+ (Cons (x : a) (xs : [ a ]) ~ concat (loop xs) [ x ])) in loop
   Has type: `(a : *) => [ a ] -> [ a ]`.
   Value; `<fun>`.
   Binding `reverse` has been created.
   
-  Processing `run-tests : (a : *) => (b : *) => (a -> b) -> [ (a, b) ] -> Bool = (a : *) => (b : *) => f : a -> b ~ loop True where (loop : Bool -> [ (a, b) ] -> Bool) = rsf : Bool ~ fun ([{ (a, b) }] ~ rsf) ((x : a, y : b) :: (ps : [ (a, b) ]) ~ loop rsf' ps where (rsf' : Bool) = y == f x and rsf )`.
+  Processing `run-tests : (a : *) => (b : *) => (a -> b) -> [ (a, b) ] -> Bool = (a : *) => (b : *) => f : a -> b ~ loop True where loop : Bool -> [ (a, b) ] -> Bool = rsf : Bool ~ fun ([{ (a, b) }] ~ rsf) ((x : a, y : b) :: (ps : [ (a, b) ]) ~ loop rsf' ps where rsf' : Bool = y == f x and rsf )`.
   Parsed: `run-tests : (a : *) => (b : *) => (a -> b) -> [ (a, b) ] -> Bool = (a : *) => (b : *) => (f : a -> b) ~ let (loop : Bool -> [ (a, b) ] -> Bool) = ((rsf : Bool) ~ (Nil{ (a, b) } ~ rsf) <+ (Cons ((x : a), (y : b)) (ps : [ (a, b) ]) ~ let (rsf' : Bool) = ((True ~ rsf) <+ (False ~ False)) (y == f x) in loop rsf' ps)) in loop True
   Has type: `(a : *) => (b : *) => (a -> b) -> [ (a, b) ] -> Bool`.
   Value; `<fun>`.
@@ -295,24 +295,24 @@ Loading some code is about the most testing that we can do!
   Has type: `Map Num Num`.
   Value: `<map(1 |-> 3, 2 |-> 7)>`.
   
-  Processing `fib-memo : Num -> Num = fun (0 ~ 0) (n : Num ~ fib-core ({ n |-> 0 } <+> 1 |-> 1) n) where (fib-core : Map Num Num -> Num -> Num) = memo : Map Num Num ~ n : Num ~ case memo >+> n of (Just (f : Num) ~ f) (Nothing{ Num } ~ fib-core (memo <+> n |-> f) n where (f : Num) = fib-core memo (n - 2) + fib-core memo (n - 1) )`.
+  Processing `fib-memo : Num -> Num = fun (0 ~ 0) (n : Num ~ fib-core ({ n |-> 0 } <+> 1 |-> 1) n) where fib-core : Map Num Num -> Num -> Num = memo : Map Num Num ~ n : Num ~ case memo >+> n of (Just (f : Num) ~ f) (Nothing{ Num } ~ fib-core (memo <+> n |-> f) n where f : Num = fib-core memo (n - 2) + fib-core memo (n - 1) )`.
   Parsed: `fib-memo : Num -> Num = let (fib-core : Map Num Num -> Num -> Num) = ((memo : Map Num Num) ~ (n : Num) ~ ((Just (f : Num) ~ f) <+ (Nothing{ Num } ~ let (f : Num) = (fib-core memo (n - 2) + fib-core memo (n - 1)) in fib-core (memo <+> (n |-> f)) n)) (memo >+> n)) in ({(==) 0} ~ 0) <+ ((n : Num) ~ fib-core (list->map [ (n, 0) ] <+> (1 |-> 1)) n)
   Has type: `Num -> Num`.
   Value; `<fun>`.
   Binding `fib-memo` has been created.
   
-  Processing `fib-memo' : Num -> Num = fun (0 ~ 0) (1 ~ 1) (n : Num ~ fib-core ({ 0 |-> 0 } <+> 1 |-> 1) n) where (fib-core : Map Num Num -> Num -> Num) = memo : Map Num Num ~ n : Num ~ case memo >+> n of (Just (f : Num) ~ f) (Nothing{ Num } ~ fib-core (memo <+> n |-> f) n where (f : Num) = fib-core memo (n - 2) + fib-core memo (n - 1) )`.
+  Processing `fib-memo' : Num -> Num = fun (0 ~ 0) (1 ~ 1) (n : Num ~ fib-core ({ 0 |-> 0 } <+> 1 |-> 1) n) where fib-core : Map Num Num -> Num -> Num = memo : Map Num Num ~ n : Num ~ case memo >+> n of (Just (f : Num) ~ f) (Nothing{ Num } ~ fib-core (memo <+> n |-> f) n where f : Num = fib-core memo (n - 2) + fib-core memo (n - 1) )`.
   Parsed: `fib-memo' : Num -> Num = let (fib-core : Map Num Num -> Num -> Num) = ((memo : Map Num Num) ~ (n : Num) ~ ((Just (f : Num) ~ f) <+ (Nothing{ Num } ~ let (f : Num) = (fib-core memo (n - 2) + fib-core memo (n - 1)) in fib-core (memo <+> (n |-> f)) n)) (memo >+> n)) in ({(==) 0} ~ 0) <+ ({(==) 1} ~ 1) <+ ((n : Num) ~ fib-core (list->map [ (0, 0) ] <+> (1 |-> 1)) n)
   Has type: `Num -> Num`.
   Value; `<fun>`.
   Binding `fib-memo'` has been created.
   
-  Processing `fib-memo'' : Num -> Num = fun (0 ~ 0) (1 ~ 1) (n : Num ~ fib-core { 0 |-> 0, 1 |-> 1 } n) where (fib-core : Map Num Num -> Num -> Num) = memo : Map Num Num ~ n : Num ~ case memo >+> n of (Just (f : Num) ~ f) (Nothing{ Num } ~ fib-core (memo <+> n |-> f) n where (f : Num) = fib-core memo (n - 2) + fib-core memo (n - 1) )`.
+  Processing `fib-memo'' : Num -> Num = fun (0 ~ 0) (1 ~ 1) (n : Num ~ fib-core { 0 |-> 0, 1 |-> 1 } n) where fib-core : Map Num Num -> Num -> Num = memo : Map Num Num ~ n : Num ~ case memo >+> n of (Just (f : Num) ~ f) (Nothing{ Num } ~ fib-core (memo <+> n |-> f) n where f : Num = fib-core memo (n - 2) + fib-core memo (n - 1) )`.
   Parsed: `fib-memo'' : Num -> Num = let (fib-core : Map Num Num -> Num -> Num) = ((memo : Map Num Num) ~ (n : Num) ~ ((Just (f : Num) ~ f) <+ (Nothing{ Num } ~ let (f : Num) = (fib-core memo (n - 2) + fib-core memo (n - 1)) in fib-core (memo <+> (n |-> f)) n)) (memo >+> n)) in ({(==) 0} ~ 0) <+ ({(==) 1} ~ 1) <+ ((n : Num) ~ fib-core (list->map [ (0, 0), (1, 1) ]) n)
   Has type: `Num -> Num`.
   Value; `<fun>`.
   Binding `fib-memo''` has been created.
   
-  Successfully loaded * created bindings `concat`, `f`, `fac`, `fff`, `fib`, `fib-memo`, `fib-memo'`, `fib-memo''`, `giggles`, `mapNum`, `mapNum2`, `mapNum3`, `mapNum4`, `mapPoly`, `poly-pair`, `reverse`, `run-tests`. (glob)
+  Successfully loaded `/home/royal/royal/projects/motmot-lite/dist/Examples.mot`; created bindings `concat`, `f`, `fac`, `fff`, `fib`, `fib-memo`, `fib-memo'`, `fib-memo''`, `giggles`, `mapNum`, `mapNum2`, `mapNum3`, `mapNum4`, `mapPoly`, `poly-pair`, `reverse`, `run-tests`.
   
   #> Goodbye!

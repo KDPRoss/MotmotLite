@@ -99,7 +99,7 @@ case 12 of
 
 -- Backtracking (to ignore possible list-length mismatch)
 add-corresponding-elements [ 1, 2 ] [ 3, 4, 5, 6, 7 ]
-where (add-corresponding-elements : [ Num ] -> [ Num ] -> [ Num ]) =
+where add-corresponding-elements : [ Num ] -> [ Num ] -> [ Num ] =
         fun
         (_ : [ Num ]                 | [{ Num }]                   ~ [{ Num }])
         ([{ Num }]                   ~ _ : [ Num ]                 ~ [{ Num }])
@@ -138,8 +138,8 @@ fib-memo : Num -> Num =
             case m >+> n of
             (Just (n' : Num) ~ (n', m))
             (Nothing{ Num }  ~ (n', m''')
-                               where (n' : Num)                   = l + r
-                                   | (m''' : Map Num Num)         = m'' <+> n |-> n'
+                               where n' : Num                     = l + r
+                                   | m''' : Map Num Num           = m'' <+> n |-> n'
                                    | (l : Num, m' : Map Num Num)  = core m (n - 2)
                                    | (r : Num, m'' : Map Num Num) = core m' (n - 1)
             )
@@ -161,7 +161,7 @@ poly-pair : (a : *) => a -> (b : *) => b -> (a, b) =
 -- argument for the `b` formal type parameter ... which
 -- cannot be inferred.)
 funny-games
-where (funny-games : (a : *) => (b : *) => a -> b) =
+where funny-games : (a : *) => (b : *) => a -> b =
         (a : *) => (b : *) =>
           x : a ~
             funny-games{ _, b } x
@@ -170,13 +170,13 @@ where (funny-games : (a : *) => (b : *) => a -> b) =
 -- Polymorphic recursion
 -- ('Mycroft (Coupled)' from Hallett and Kfoury, 2004)
 (sq-list [ 2, 4 ], comp-list [ True, False ])
-where (my-map : (a : *) => (a -> a) -> [ a ] -> [ a ]) =
+where my-map : (a : *) => (a -> a) -> [ a ] -> [ a ] =
         (a : *) =>
           fun
           (_ : a -> a | [{ a }]                 ~ [{ a }])
           (f : a -> a ~ (l : a) :: (ls : [ a ]) ~ f l :: my-map f ls)
-    | (sq-list : [ Num ] -> [ Num ])     = my-map (x : Num ~ x * x)
-    | (comp-list : [ Bool ] -> [ Bool ]) = my-map not
+    | sq-list : [ Num ] -> [ Num ]     = my-map (x : Num ~ x * x)
+    | comp-list : [ Bool ] -> [ Bool ] = my-map not
 
 -- Tail recursion via CPS -- it's like `goto`, but better
 -- and more self-referential (n.b., the type parameter `c`
@@ -187,13 +187,13 @@ map-cps : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] =
   (a : *) => (b : *) =>
     f : a -> b ~
       loop id{ [ b ] }
-    where (loop : (c : *) => ([ b ] -> c) -> [ a ] -> c) =
+    where loop : (c : *) => ([ b ] -> c) -> [ a ] -> c =
             (c : *) =>
               k : [ b ] -> c ~
                 fun
                 ([{ a }]                 ~ k [{ b }])
                 ((x : a) :: (xs : [ a ]) ~ loop k' xs
-                                           where (k' : [ b ] -> c) = ys : [ b ] ~ k (f x :: ys)
+                                           where k' : [ b ] -> c = ys : [ b ] ~ k (f x :: ys)
                 )
 
 map-naive : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] =
@@ -204,5 +204,5 @@ map-naive : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] =
 
 -- (evaluates to `True`)
 map-naive f xs == map-cps f xs
-where (f : Num -> Num) = _ + 3
-    | (xs : [ Num ])   = [ 1, 17, 12 ]
+where f : Num -> Num = _ + 3
+    | xs : [ Num ]   = [ 1, 17, 12 ]

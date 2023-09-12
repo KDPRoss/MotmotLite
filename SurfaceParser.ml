@@ -220,7 +220,7 @@ let exp : SurfaceSyntax.exp lazyParse =
         SurfaceSyntax.EFun es )
   and expB : SurfaceSyntax.exp lazyParse =
     let core () =
-      let bind = cache patC <== txt "=" <!> cache expB <== just () in
+      let bind = cache patExt <== txt "=" <!> cache expB <== just () in
       let ewhere =
         cache expM <== txt "where" <=> repsep1 bind (txt "|" <== just ())
         >>> fun ebs -> SurfaceSyntax.EWhere ebs
