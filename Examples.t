@@ -313,6 +313,6 @@ Loading some code is about the most testing that we can do!
   Value; `<fun>`.
   Binding `fib-memo''` has been created.
   
-  Successfully loaded `/home/royal/royal/projects/motmot-lite/dist/Examples.mot`; created bindings `concat`, `f`, `fac`, `fff`, `fib`, `fib-memo`, `fib-memo'`, `fib-memo''`, `giggles`, `mapNum`, `mapNum2`, `mapNum3`, `mapNum4`, `mapPoly`, `poly-pair`, `reverse`, `run-tests`.
+  Successfully loaded * created bindings `concat`, `f`, `fac`, `fff`, `fib`, `fib-memo`, `fib-memo'`, `fib-memo''`, `giggles`, `mapNum`, `mapNum2`, `mapNum3`, `mapNum4`, `mapPoly`, `poly-pair`, `reverse`, `run-tests`. (glob)
   
   #> Goodbye!

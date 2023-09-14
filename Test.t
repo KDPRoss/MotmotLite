@@ -251,6 +251,6 @@ Loading some code is about the most testing that we can do!
   Has type: `Bool`.
   Value: `True`.
   
-  Successfully loaded `/home/royal/royal/projects/motmot-lite/dist/Demo.mot`; created bindings `fib-memo`, `fib-naive`, `map-cps`, `map-naive`, `poly-pair`.
+  Successfully loaded * created bindings `fib-memo`, `fib-naive`, `map-cps`, `map-naive`, `poly-pair`. (glob)
   
   #> Goodbye!
