@@ -58,23 +58,27 @@ I created MotmotLite for a few reasons:
 * Set up `opam`:
   * Install `opam` via whatever your package system is
     * On Arch-based Linux: `pacman -S opam`
+    * On Debian-based Linux: `apt install opam`
   * Initialise `opam`:
     * `opam init`
     * `opam switch create ocaml-base-compiler.4.14.1`
     * `opam switch ocaml-base-compiler.4.14.1`
-    * `eval $(opam env)`
+    * `eval $( opam env )`
     * `opam install core extlib zarith`
       * You *may* need to install some system packages (e.g., GMP);
-        you're on your own there!
+        you're on your own there! (On Ubuntu-based systems, this may
+        happen automatically.)
 * Build it: `make build`
 * Run it:
-  * Install `rlwrap` (optional, technically)
+  * Install `rlwrap` (optional)
   * `make run` (or just `./MotmotLite`)
   * Run the tests (optional)
     * You'll need `cram`, which you may be able to install via
       your package manager … or via the horrors of Python /
       `pip`.
       * On Arch-based Linux: `pacman -S cram`
+      * On Debian-based Linux: (`apt install python3-pip ;
+        pip install cram`)
     * `make test`
 
 ### Option 2: Run in Docker
@@ -84,6 +88,10 @@ I created MotmotLite for a few reasons:
   service-management systems are.
   * On Arch-based Linux:
     * `pacman -S docker`
+    * `systemctl start docker`
+    * `systemctl enable docker` (optional)
+  * On Debian-based Linux:
+    * `apt install docker`
     * `systemctl start docker`
     * `systemctl enable docker` (optional)
 * `make run-docker` which will:
@@ -128,6 +136,7 @@ OCaml and GNU-based tooling.
 | Has 100+kLOC implemented in it        | [X]    | [ ]        |
 | Has dozens of LOC implemented in it   | [ ]    | [X]        |
 | Implemented in NG                     | [X]    | [X] [^3]   |
+| Inbuilt Ed-inspired text editor       | [X]    | [ ]        |
 | Is a staggering work of beauty        | [?]    | [?]        |
 | Jupyter kernel support                | [X]    | [X]        |
 | Open source                           | [ ]    | [X]        |
