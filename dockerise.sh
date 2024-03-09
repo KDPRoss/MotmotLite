@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 apk add bash g++ git gmp-dev make opam rlwrap && \
 yes | opam init --bare --disable-sandboxing && \
