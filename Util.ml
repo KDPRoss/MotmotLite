@@ -72,7 +72,7 @@ let fold1 ~f xs =
   | x :: xs -> List.fold ~f ~init:x xs
   | [] -> failwith "fold1 argument error"
 
-let nub xs = PolySet.stable_dedup_list xs
+let nub xs = List.stable_dedup ~compare xs
 
 let readFile f =
   let is = open_in f in
