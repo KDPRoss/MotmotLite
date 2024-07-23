@@ -1,6 +1,6 @@
 (* MotmotLite: A Motmotastic Linguistic Toy
 
-      Copyright 2023, K.D.P.Ross <KDPRoss@gmail.com>
+      Copyright 2023 -- 2024, K.D.P.Ross <KDPRoss@gmail.com>
 
    MotmotLite is released under the MotmotLite Licence with the
    following terms:
