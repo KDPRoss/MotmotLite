@@ -245,9 +245,9 @@ handling in other languages but subtly distinct.
   * [Erlang](https://en.wikipedia.org/wiki/Erlang_(programming_language))
   * [F#](https://en.wikipedia.org/wiki/F_Sharphttps://github.com/KDPRoss/Sisserouedia.org/wiki/Purely_functional_programming)
   * [Haskell](https://www.haskell.org/ghc/)
-  * Motmot
+  * [Motmot](https://github.com/KDPRoss/Snippets)
   * [Sisserou](https://github.com/KDPRoss/Sisserou)
-  * Tanager
+  * [Tanager](https://github.com/KDPRoss/Snippets)
 * Related concepts:
   * [Generic Programming](https://en.wikipedia.org/wiki/Generic_programming)
   * [Hindley-Milner](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system)
