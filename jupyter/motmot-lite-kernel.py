@@ -6,6 +6,34 @@
 from ipykernel.kernelbase import Kernel
 import subprocess
 
+def chunk(ss):
+    cur = ''
+    res = []
+
+    for s in ss:
+        sP = s.strip()
+        isComment = sP.startswith('-- ') or '--' == sP
+        if '' == sP:
+            if cur:
+                res.append(cur)
+                cur = ''
+        elif sP.startswith('|') or sP.startswith(')') or sP.startswith(']') or sP.startswith('}') or sP.startswith('where ') or sP.startswith('using ') or sP.startswith('recover '):
+            # Hack: These could not possibly start a top-level
+            # expression; treat as continuation.
+            cur = cur + ' ' + sP
+        elif not isComment:
+            if not s.startswith(' '):
+                if cur:
+                    res.append(cur)
+                cur = sP
+            else:
+                cur = cur + ' ' + sP
+
+    if cur:
+        res.append(cur)
+
+    return res
+
 # Cargo-cult OOP nonsense. What a ridiculous programming
 # paradigm ... and badly implemented in Python.
 class MotmotLiteKernel(Kernel):
@@ -38,9 +66,8 @@ class MotmotLiteKernel(Kernel):
 
     def do_execute(self, code, silent, store_history = True, user_expressions = None, allow_stdin = False):
         try:
-            # This is sloppy!
-            lines = [ l for l in code.split('\n') if '--' not in l ]
-            out = self.one(' '.join(lines)).rstrip(' \n')
+            lines = chunk(code.split('\n'))
+            out = '\n\n'.join([ self.one(l) for l in lines ])
         except Exception as e:
             out = '(Kernel failure: `' + str(e) + '`)'
         stream_content = {'name': 'stdout', 'text': out}
@@ -54,6 +81,18 @@ class MotmotLiteKernel(Kernel):
             'user_expressions': {},
         }
 
+    def do_shutdown(self, restart):
+        try:
+            self.proc.stdin.write(bytes(':quit\n', 'utf-8'))
+            self.proc.stdin.flush()
+
+            sOut = ''
+            while '<<<KERNEL-FINISHED>>>' not in sOut:
+                sOut = self.proc.stdout.readline().decode('utf-8')
+                sOut = sOut.rstrip(' \n')
+        except:
+            pass
+        super().do_shutdown(restart)
 if __name__ == '__main__':
     from ipykernel.kernelapp import IPKernelApp
     IPKernelApp.launch_instance(kernel_class = MotmotLiteKernel)
