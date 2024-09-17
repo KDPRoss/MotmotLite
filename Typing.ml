@@ -671,7 +671,7 @@ let typingFuncs (showTyp : typ -> string) =
         let rec loop bigG = function
           | [] -> ([], bigG)
           | p :: ps ->
-              let t, bigG' = typOfPat d g bigD bigG p in
+              let t, bigG' = typOfPat d g bigD bigG None p in
               let gs = [ bigG'; bigG ] in
               let bigG'' = smashEnvs gs in
               let _ = shadowedVarsWarn gs in
@@ -787,7 +787,7 @@ let typingFuncs (showTyp : typ -> string) =
               match restructureBindings d g bigD bigG (p, e) with
               | None, bts' -> bts'
               | Some (y, e), bts' ->
-                  let t, _ = typOfPat d g bigD bigG p in
+                  let t, _ = typOfPat d g bigD bigG None p in
                   (PVar (y, t), e) :: bts'
             with TypeError ->
               typeError ("Bad pattern `" -- CoreLineariser.showPat p -- "`.")
@@ -873,7 +873,7 @@ let typingFuncs (showTyp : typ -> string) =
           ("Cannot infer type for nonsyntactically-denotable term `"
          -- CoreLineariser.showExp e -- "`.")
   and typOfPat (d : knd Env.t) (g : knd Env.t) (bigD : typ Env.t)
-      (bigG : typ Env.t) (p : pat) : typ * typ Env.t =
+      (bigG : typ Env.t) (tM : typ option) (p : pat) : typ * typ Env.t =
     let handleApp = handleApp showTyp in
     let reduceType = reduceType showTyp in
     let showDiffTypes = showDiffTypes showTyp in
@@ -888,11 +888,11 @@ let typingFuncs (showTyp : typ -> string) =
     | PAny t -> (t, Env.empty)
     | PVar (x, t) -> (t, Env.empty <+> x @-> reduceType true d g t)
     | PCVal ("Cons", [], [ p; PCVal ("Nil", [], []) ]) ->
-        let t, g = typOfPat d g bigD bigG p in
+        let t, g = typOfPat d g bigD bigG tM p in
         (TCVal ("List", [ t ]), g)
     | PCVal (c, ts, ps) -> (
         let ts', bigGs' =
-          ps &> List.map ~f:(typOfPat d g bigD bigG) @> List.unzip
+          ps &> List.map ~f:(typOfPat d g bigD bigG tM) @> List.unzip
         in
         let _ = repeatedVarsErr (fun _ -> typeError "") bigGs' in
         let left t = Left t in
@@ -900,7 +900,7 @@ let typingFuncs (showTyp : typ -> string) =
         match bigD ==> c with
         | Some t -> (
             let ts', bigGs' =
-              ps &> List.map ~f:(typOfPat d g bigD bigG) @> List.unzip
+              ps &> List.map ~f:(typOfPat d g bigD bigG tM) @> List.unzip
             in
             let _ = repeatedVarsErr (fun _ -> typeError "") bigGs' in
             let bigG' = smashEnvs bigGs' in
@@ -945,29 +945,28 @@ let typingFuncs (showTyp : typ -> string) =
             in
             typeError "")
     | PTup ps ->
-        let ts, gs = ps &> List.map ~f:(typOfPat d g bigD bigG) @> List.unzip in
+        let ts, gs =
+          ps &> List.map ~f:(typOfPat d g bigD bigG tM) @> List.unzip
+        in
         let _ = repeatedVarsErr (fun _ -> typeError "") gs in
         let g = smashEnvs gs in
         (TTpl ts, g)
-    | PConj (PWhen (e, None), p) ->
-        let te = typOf d g bigD bigG e in
-        let tpg = typOfPat d g bigD bigG p in
-        if tBool = te then tpg
-        else typeError "Condition pattern must be `Bool`."
-    | PConj (p, PWhen (e, None)) ->
-        let tp, gp = typOfPat d g bigD bigG p in
-        let te = typOf d g bigD (Env.joinR bigG gp) e in
-        if tBool = te then (tp, gp)
-        else typeError "Condition pattern must be `Bool`."
     | PWhen (e, Some t) ->
         let te = typOf d g bigD bigG e in
         if tBool = te then (t, Env.empty)
         else typeError "Condition pattern must be `Bool`."
-    | PWhen (_, None) ->
-        typeError "Condition pattern must have a type annotation."
-    | PConj (p1, p2) ->
-        let t1, g1 = typOfPat d g bigD bigG p1 in
-        let t2, g2 = typOfPat d g bigD (Env.joinR bigG g1) p2 in
+    | PWhen (e, None) -> (
+        match tM with
+        | Some t -> typOfPat d g bigD bigG tM (PWhen (e, Some t))
+        | None -> typeError "Condition pattern must have a type annotation.")
+    | PConj (PWhen (e, None), p) ->
+        let te = typOf d g bigD bigG e in
+        let tpg = typOfPat d g bigD bigG tM p in
+        if tBool = te then tpg
+        else typeError "Condition pattern must be `Bool`."
+    | PConj (p1, p2) -> (
+        let t1, g1 = typOfPat d g bigD bigG tM p1 in
+        let t2, g2 = typOfPat d g bigD (Env.joinR bigG g1) (Some t1) p2 in
         if not (t1 =~= t2) then (
           let _ =
             let core =
@@ -982,7 +981,25 @@ let typingFuncs (showTyp : typ -> string) =
           in
           showDiffTypes t1 t2;
           typeError "")
-        else (t1, Env.joinR g1 g2)
+        else
+          match tM with
+          | Some t ->
+              if not (t =~= t1) then (
+                let _ =
+                  let core =
+                    [
+                      "Conjunction pattern disagrees with type hint:";
+                      "  `" -- showTyp t -- "` (hint)";
+                      "  vs";
+                      "  `" -- showTyp t1 -- "` (type)";
+                    ]
+                  in
+                  List.iter ~f:print_endline core
+                in
+                showDiffTypes t1 t2;
+                typeError "")
+              else (t1, Env.joinR g1 g2)
+          | None -> (t1, Env.joinR g1 g2))
     | PPred e -> (
         match typOf d g bigD bigG e with
         | TArr (t, t') when t' = tBool -> (t, Env.empty)
