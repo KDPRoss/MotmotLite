@@ -807,7 +807,18 @@ let typingFuncs (showTyp : typ -> string) =
           try
             let t = reduceType true d g t in
             let _ =
-              try ignore (kindOf d g t)
+              try
+                match kindOf d g t with
+                | KStar -> ()
+                | k ->
+                    let _ =
+                      print_endline
+                        ("Expected kind `"
+                        -- CoreLineariser.showKnd KStar
+                        -- "` for binding; received `"
+                        -- CoreLineariser.showKnd k -- "`.")
+                    in
+                    raise TypeError
               with _ ->
                 print_endline
                   ("Kind error when checking type `" -- showTyp t
