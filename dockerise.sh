@@ -2,10 +2,12 @@
 
 set -eu
 
+OPAM_SWITCH=5.2.0
+
 apk add bash g++ git gmp-dev make opam rlwrap
-yes | opam init --bare --disable-sandboxing
-yes | opam switch create 5.2.0
-opam switch 5.2.0
+opam init --bare --disable-sandboxing --yes --confirm-level=unsafe-yes --disable-shell-hook
+yes | opam switch create "$OPAM_SWITCH"
+opam switch "$OPAM_SWITCH"
 opam install core extlib zarith -y
 eval "$( opam env )"
 cd /
