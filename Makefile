@@ -20,7 +20,7 @@ run: build
 
 .PHONY: run-docker
 run-docker: $(DOCKER_ARCHIVE)
-	docker import $(DOCKER_ARCHIVE) && \
+	docker import $(DOCKER_ARCHIVE) motmotlite:latest && \
 	docker run -it motmotlite /motmot
 
 .PHONY: test
