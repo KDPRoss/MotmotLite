@@ -40,7 +40,7 @@ let find m k =
     raise e
 
 let ( <+> ) : 'a t -> string * 'a -> 'a t =
- fun m (k, v) -> m &> flip Map.remove k @> Map.add_exn ~key:k ~data:v
+ fun m (k, v) -> Map.set ~key:k ~data:v m
 
 let rem : 'a t -> string -> 'a t = fun m k -> Map.remove m k
 
