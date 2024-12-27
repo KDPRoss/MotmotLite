@@ -1,4 +1,5 @@
 (executable
   (name MotmotLite)
+  (modes exe)
   (libraries core extlib str zarith)
 )

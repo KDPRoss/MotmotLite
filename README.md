@@ -61,8 +61,8 @@ I created MotmotLite for a few reasons:
     * On Debian-based Linux: `apt install opam`
   * Initialise `opam`:
     * `opam init`
-    * `opam switch create ocaml-base-compiler.5.2.0`
-    * `opam switch ocaml-base-compiler.5.2.0`
+    * `opam switch create ocaml-base-compiler.5.2.1`
+    * `opam switch ocaml-base-compiler.5.2.1`
     * `eval "$( opam env )"`
     * `opam install core extlib zarith`
       * You *may* need to install some system packages (e.g., GMP);
