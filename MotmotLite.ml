@@ -231,7 +231,7 @@ let replMain () =
   let banner =
     [
       "Welcome to MotmotLite";
-      "Copyright 2023, K.D.P.Ross <KDPRoss@gmail.com>";
+      "Copyright 2023--2025, K.D.P.Ross <KDPRoss@gmail.com>";
       "";
       "'It's about 20% as good as Motmot";
       " with a code-base only 9% the size;";

@@ -9,7 +9,7 @@ did not investigate terribly hard.)
 Loading some code is about the most testing that we can do!
   $ $( which echo ) -e ":file $TESTDIR/Demo.mot\n:quit\n" | $TESTDIR/MotmotLite | grep -v 'Ought to load' | grep -v 'lines from'
   * (glob)
-  Copyright 2023, K.D.P.Ross <KDPRoss@gmail.com>
+  Copyright 2023--2025, K.D.P.Ross <KDPRoss@gmail.com>
   
   'It's about 20% as good as Motmot
    with a code-base only 9% the size;
