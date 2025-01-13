@@ -30,36 +30,7 @@ open ParserCombinators
 
 let surfaceKeywords =
   let core =
-    [
-      ":";
-      "<+";
-      "=";
-      "\\";
-      "axiom";
-      "case";
-      "cases";
-      "else";
-      "fun";
-      "if";
-      "in";
-      "lazy";
-      "lazy-parse";
-      "let";
-      "matches";
-      "mixfix";
-      "module";
-      "of";
-      "private";
-      "recover";
-      "strict";
-      "then";
-      "thunk";
-      "try";
-      "typedef";
-      "using";
-      "where";
-      "~";
-    ]
+    [ ":"; "<+"; "="; "=>"; "\\"; "case"; "fun"; "of"; "where"; "~" ]
   in
   StringSet.of_list core
 
