@@ -37,23 +37,24 @@ let stType = ref Prelude.minPreludeType
 let stTerm = ref Prelude.minPreludeTerm
 
 let processExp kernelMode (e : SurfaceSyntax.exp) : unit =
-  let e' = SurfaceSyntax.coreOfSurfaceExp id e in
+  let e2 = SurfaceSyntax.coreOfSurfaceExp id e in
+  let e3 = SubstType.expFreshTyp e2 in
   let _ =
     if not kernelMode then
-      print_endline ("Parsed: `" -- CoreLineariser.showExp e' -- "`.")
+      print_endline ("Parsed: `" -- CoreLineariser.showExp e3 -- "`.")
   in
   let t =
     Typing.typOf CoreLineariser.showTyp typCnsKndEnv Env.empty expCnsTypEnv
-      !stType e'
+      !stType e3
   in
   let _ = print_endline ("Has type: `" -- CoreLineariser.showTyp t -- "`.") in
   let _ = Typing.kindOf CoreLineariser.showTyp typCnsKndEnv Env.empty t in
-  let e'' = Bindings.restructureBindingsExp e' in
+  let e4 = Bindings.restructureBindingsExp e2 in
   let _ =
-    if (not kernelMode) && e'' <> e' then
-      print_endline ("Restructured: `" -- CoreLineariser.showExp e'' -- "`.")
+    if (not kernelMode) && e4 <> e2 then
+      print_endline ("Restructured: `" -- CoreLineariser.showExp e4 -- "`.")
   in
-  let v = Eval.eval !stTerm e'' in
+  let v = Eval.eval !stTerm e4 in
   let _ = print_endline ("Value: `" -- CoreLineariser.showExp v -- "`.") in
   ()
 
@@ -66,22 +67,23 @@ let processBind kernelMode (x, t, e) : unit =
           raise Typing.TypeError
       | None -> ()
   in
-  let t' = SurfaceSyntax.coreOfSurfaceTyp id t in
-  let e' = SurfaceSyntax.coreOfSurfaceExp id e in
-  let e'' = Bindings.restructureBindingsExp e' in
+  let t2 = SurfaceSyntax.coreOfSurfaceTyp id t in
+  let t3 = SubstType.typFreshTyp t2 in
+  let e2 = SurfaceSyntax.coreOfSurfaceExp id e in
+  let e3 = SubstType.expFreshTyp e2 in
+  let e4 = Bindings.restructureBindingsExp e3 in
   let _ =
     if not kernelMode then
       print_endline
-        ("Parsed: `" -- x -- " : " -- CoreLineariser.showTyp t' -- " = "
-       -- CoreLineariser.showExp e')
+        ("Parsed: `" -- x -- " : " -- CoreLineariser.showTyp t3 -- " = "
+       -- CoreLineariser.showExp e3)
   in
-  let t'' =
-    let g = !stType <+> x @-> t' in
-    Typing.typOf CoreLineariser.showTyp typCnsKndEnv Env.empty expCnsTypEnv g e'
+  let t3 =
+    let g = !stType <+> x @-> t3 in
+    Typing.typOf CoreLineariser.showTyp typCnsKndEnv Env.empty expCnsTypEnv g e3
   in
   let _ =
-    if
-      not (Typing.typEquiv CoreLineariser.showTyp typCnsKndEnv Env.empty t'' t')
+    if not (Typing.typEquiv CoreLineariser.showTyp typCnsKndEnv Env.empty t3 t3)
     then
       let _ =
         print_endline "Annotated type does not match expression's type."
@@ -90,11 +92,11 @@ let processBind kernelMode (x, t, e) : unit =
   in
   let _ =
     if not kernelMode then
-      print_endline ("Has type: `" -- CoreLineariser.showTyp t'' -- "`.")
+      print_endline ("Has type: `" -- CoreLineariser.showTyp t3 -- "`.")
   in
-  let _ = Typing.kindOf CoreLineariser.showTyp typCnsKndEnv Env.empty t'' in
-  let _ = stType := !stType <+> x @-> t' in
-  let v = Eval.eval !stTerm Syntax.(ELet ([ (PVar (x, t'), e'') ], EVar x)) in
+  let _ = Typing.kindOf CoreLineariser.showTyp typCnsKndEnv Env.empty t3 in
+  let _ = stType := !stType <+> x @-> t3 in
+  let v = Eval.eval !stTerm Syntax.(ELet ([ (PVar (x, t3), e4) ], EVar x)) in
   let _ =
     if not kernelMode then
       print_endline ("Value; `" -- CoreLineariser.showExp v -- "`.")

@@ -228,19 +228,19 @@ Loading some code is about the most testing that we can do!
   Binding `poly-pair` has been created.
   
   Processing `mapPoly : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] = (a : *) => (b : *) => fun (_ : a -> b | [{ a }] ~ [{ b }]) (f : a -> b ~ (x : a) :: (xs : [ a ]) ~ f x :: mapPoly f xs)`.
-  Parsed: `mapPoly : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] = (a : *) => (b : *) => ((_ : a -> b) | Nil{ a } ~ Nil{ b }) <+ ((f : a -> b) ~ Cons (x : a) (xs : [ a ]) ~ f x :: mapPoly f xs)
+  Parsed: `mapPoly : (a/2 : *) => (b/2 : *) => (a/2 -> b/2) -> [ a/2 ] -> [ b/2 ] = (a : *) => (b : *) => ((_ : a -> b) | Nil{ a } ~ Nil{ b }) <+ ((f : a -> b) ~ Cons (x : a) (xs : [ a ]) ~ f x :: mapPoly f xs)
   Has type: `(a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ]`.
   Value; `<fun>`.
   Binding `mapPoly` has been created.
   
   Processing `fff : (b : *) => (a : *) => a -> b = (b : *) => (a : *) => x : a ~ fff{ b } x`.
-  Parsed: `fff : (b : *) => (a : *) => a -> b = (b : *) => (a : *) => (x : a) ~ fff{ b } x
+  Parsed: `fff : (b/2 : *) => (a/2 : *) => a/2 -> b/2 = (b : *) => (a : *) => (x : a) ~ fff{ b } x
   Has type: `(b : *) => (a : *) => a -> b`.
   Value; `<fun>`.
   Binding `fff` has been created.
   
   Processing `f : (a : *) => (Num -> a) -> Num -> a = (a : *) => g : Num -> a ~ fun (0 ~ g 1) (n : Num ~ f (m : Num ~ g (m * n)) (n - 1))`.
-  Parsed: `f : (a : *) => (Num -> a) -> Num -> a = (a : *) => (g : Num -> a) ~ ({(==) 0} ~ g 1) <+ ((n : Num) ~ f ((m : Num) ~ g (m * n)) (n - 1))
+  Parsed: `f : (a/2 : *) => (Num -> a/2) -> Num -> a/2 = (a : *) => (g : Num -> a) ~ ({(==) 0} ~ g 1) <+ ((n : Num) ~ f ((m : Num) ~ g (m * n)) (n - 1))
   Has type: `(a : *) => (Num -> a) -> Num -> a`.
   Value; `<fun>`.
   Binding `f` has been created.
@@ -251,7 +251,7 @@ Loading some code is about the most testing that we can do!
   Value: `6`.
   
   Processing `id{ [ [ Num ] ] } (mapPoly{ Num, [ Num ] } (id{ Num -> [ Num ] } list{ Num }) [ 5, 2, 1 ]) where list : (a : *) => a -> [ a ] = (a : *) => x : a ~ [ x ]`.
-  Parsed: `let (list : (a : *) => a -> [ a ]) = ((a : *) => (x : a) ~ [ x ]) in id{ [ [ Num ] ] } (mapPoly{ Num, [ Num ] } (id{ Num -> [ Num ] } (list{ Num })) [ 5, 2, 1 ])`.
+  Parsed: `let (list : (a : *) => a -> [ a ]) = ((a/2 : *) => (x : a/2) ~ [ x ]) in id{ [ [ Num ] ] } (mapPoly{ Num, [ Num ] } (id{ Num -> [ Num ] } (list{ Num })) [ 5, 2, 1 ])`.
   Has type: `[ [ Num ] ]`.
   Value: `[ [ 5 ], [ 2 ], [ 1 ] ]`.
   
@@ -268,13 +268,13 @@ Loading some code is about the most testing that we can do!
   Binding `concat` has been created.
   
   Processing `reverse : (a : *) => [ a ] -> [ a ] = (a : *) => loop where loop : [ a ] -> [ a ] = fun ([{ a }] ~ [{ a }]) ((x : a) :: (xs : [ a ]) ~ concat (loop xs) [ x ])`.
-  Parsed: `reverse : (a : *) => [ a ] -> [ a ] = (a : *) => let (loop : [ a ] -> [ a ]) = ((Nil{ a } ~ Nil{ a }) <+ (Cons (x : a) (xs : [ a ]) ~ concat (loop xs) [ x ])) in loop
+  Parsed: `reverse : (a/2 : *) => [ a/2 ] -> [ a/2 ] = (a : *) => let (loop : [ a ] -> [ a ]) = ((Nil{ a } ~ Nil{ a }) <+ (Cons (x : a) (xs : [ a ]) ~ concat (loop xs) [ x ])) in loop
   Has type: `(a : *) => [ a ] -> [ a ]`.
   Value; `<fun>`.
   Binding `reverse` has been created.
   
   Processing `run-tests : (a : *) => (b : *) => (a -> b) -> [ (a, b) ] -> Bool = (a : *) => (b : *) => f : a -> b ~ loop True where loop : Bool -> [ (a, b) ] -> Bool = rsf : Bool ~ fun ([{ (a, b) }] ~ rsf) ((x : a, y : b) :: (ps : [ (a, b) ]) ~ loop rsf' ps where rsf' : Bool = y == f x and rsf )`.
-  Parsed: `run-tests : (a : *) => (b : *) => (a -> b) -> [ (a, b) ] -> Bool = (a : *) => (b : *) => (f : a -> b) ~ let (loop : Bool -> [ (a, b) ] -> Bool) = ((rsf : Bool) ~ (Nil{ (a, b) } ~ rsf) <+ (Cons ((x : a), (y : b)) (ps : [ (a, b) ]) ~ let (rsf' : Bool) = ((True ~ rsf) <+ (False ~ False)) (y == f x) in loop rsf' ps)) in loop True
+  Parsed: `run-tests : (a/2 : *) => (b : *) => (a/2 -> b) -> [ (a/2, b) ] -> Bool = (a : *) => (b : *) => (f : a -> b) ~ let (loop : Bool -> [ (a, b) ] -> Bool) = ((rsf : Bool) ~ (Nil{ (a, b) } ~ rsf) <+ (Cons ((x : a), (y : b)) (ps : [ (a, b) ]) ~ let (rsf' : Bool) = ((True ~ rsf) <+ (False ~ False)) (y == f x) in loop rsf' ps)) in loop True
   Has type: `(a : *) => (b : *) => (a -> b) -> [ (a, b) ] -> Bool`.
   Value; `<fun>`.
   Binding `run-tests` has been created.

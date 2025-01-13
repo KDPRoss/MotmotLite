@@ -219,29 +219,29 @@ Loading some code is about the most testing that we can do!
   Value: `<fun>`.
   
   Processing `poly-pair : (a : *) => a -> (b : *) => b -> (a, b) = (a : *) => x : a ~ (b : *) => y : b ~ (x, y)`.
-  Parsed: `poly-pair : (a : *) => a -> (b : *) => b -> (a, b) = (a : *) => (x : a) ~ (b : *) => (y : b) ~ (x, y)
+  Parsed: `poly-pair : (a/2 : *) => a/2 -> (b : *) => b -> (a/2, b) = (a : *) => (x : a) ~ (b : *) => (y : b) ~ (x, y)
   Has type: `(a : *) => a -> (b : *) => b -> (a, b)`.
   Value; `<fun>`.
   Binding `poly-pair` has been created.
   
   Processing `funny-games where funny-games : (a : *) => (b : *) => a -> b = (a : *) => (b : *) => x : a ~ funny-games{ _, b } x`.
-  Parsed: `let (funny-games : (a : *) => (b : *) => a -> b) = ((a : *) => (b : *) => (x : a) ~ funny-games{ _, b } x) in funny-games`.
+  Parsed: `let (funny-games : (a : *) => (b : *) => a -> b) = ((a/2 : *) => (b/2 : *) => (x : a/2) ~ funny-games{ _, b/2 } x) in funny-games`.
   Has type: `(a : *) => (b : *) => a -> b`.
   Value: `<fun>`.
   
   Processing `(sq-list [ 2, 4 ], comp-list [ True, False ]) where my-map : (a : *) => (a -> a) -> [ a ] -> [ a ] = (a : *) => fun (_ : a -> a | [{ a }] ~ [{ a }]) (f : a -> a ~ (l : a) :: (ls : [ a ]) ~ f l :: my-map f ls) | sq-list : [ Num ] -> [ Num ] = my-map (x : Num ~ x * x) | comp-list : [ Bool ] -> [ Bool ] = my-map not`.
-  Parsed: `let (my-map : (a : *) => (a -> a) -> [ a ] -> [ a ]) = ((a : *) => ((_ : a -> a) | Nil{ a } ~ Nil{ a }) <+ ((f : a -> a) ~ Cons (l : a) (ls : [ a ]) ~ f l :: my-map f ls)) | (sq-list : [ Num ] -> [ Num ]) = my-map ((x : Num) ~ x * x) | (comp-list : [ Bool ] -> [ Bool ]) = my-map not in (sq-list [ 2, 4 ], comp-list [ True, False ])`.
+  Parsed: `let (my-map : (a : *) => (a -> a) -> [ a ] -> [ a ]) = ((a/2 : *) => ((_ : a/2 -> a/2) | Nil{ a/2 } ~ Nil{ a/2 }) <+ ((f : a/2 -> a/2) ~ Cons (l : a/2) (ls : [ a/2 ]) ~ f l :: my-map f ls)) | (sq-list : [ Num ] -> [ Num ]) = my-map ((x : Num) ~ x * x) | (comp-list : [ Bool ] -> [ Bool ]) = my-map not in (sq-list [ 2, 4 ], comp-list [ True, False ])`.
   Has type: `([ Num ], [ Bool ])`.
   Value: `([ 4, 16 ], [ False, True ])`.
   
   Processing `map-cps : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] = (a : *) => (b : *) => f : a -> b ~ loop id{ [ b ] } where loop : (c : *) => ([ b ] -> c) -> [ a ] -> c = (c : *) => k : [ b ] -> c ~ fun ([{ a }] ~ k [{ b }]) ((x : a) :: (xs : [ a ]) ~ loop k' xs where k' : [ b ] -> c = ys : [ b ] ~ k (f x :: ys) )`.
-  Parsed: `map-cps : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] = (a : *) => (b : *) => (f : a -> b) ~ let (loop : (c : *) => ([ b ] -> c) -> [ a ] -> c) = ((c : *) => (k : [ b ] -> c) ~ (Nil{ a } ~ k (Nil{ b })) <+ (Cons (x : a) (xs : [ a ]) ~ let (k' : [ b ] -> c) = ((ys : [ b ]) ~ k (f x :: ys)) in loop k' xs)) in loop (id{ [ b ] })
+  Parsed: `map-cps : (a/3 : *) => (b : *) => (a/3 -> b) -> [ a/3 ] -> [ b ] = (a : *) => (b : *) => (f : a -> b) ~ let (loop : (c : *) => ([ b ] -> c) -> [ a ] -> c) = ((c/2 : *) => (k : [ b ] -> c/2) ~ (Nil{ a } ~ k (Nil{ b })) <+ (Cons (x : a) (xs : [ a ]) ~ let (k' : [ b ] -> c/2) = ((ys : [ b ]) ~ k (f x :: ys)) in loop k' xs)) in loop (id{ [ b ] })
   Has type: `(a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ]`.
   Value; `<fun>`.
   Binding `map-cps` has been created.
   
   Processing `map-naive : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] = (a : *) => (b : *) => fun (f : a -> b | (x : a) :: (xs : [ a ]) ~ f x :: map-naive f xs) (_ : a -> b ~ [{ a }] ~ [{ b }])`.
-  Parsed: `map-naive : (a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ] = (a : *) => (b : *) => ((f : a -> b) | Cons (x : a) (xs : [ a ]) ~ f x :: map-naive f xs) <+ ((_ : a -> b) ~ Nil{ a } ~ Nil{ b })
+  Parsed: `map-naive : (a/2 : *) => (b/2 : *) => (a/2 -> b/2) -> [ a/2 ] -> [ b/2 ] = (a : *) => (b : *) => ((f : a -> b) | Cons (x : a) (xs : [ a ]) ~ f x :: map-naive f xs) <+ ((_ : a -> b) ~ Nil{ a } ~ Nil{ b })
   Has type: `(a : *) => (b : *) => (a -> b) -> [ a ] -> [ b ]`.
   Value; `<fun>`.
   Binding `map-naive` has been created.
