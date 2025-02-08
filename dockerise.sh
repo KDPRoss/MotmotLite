@@ -2,7 +2,7 @@
 
 set -eu
 
-OPAM_SWITCH=5.2.1
+OPAM_SWITCH=5.3.0
 
 apk add bash g++ git gmp-dev make opam rlwrap
 opam init --bare --disable-sandboxing --yes --confirm-level=unsafe-yes --disable-shell-hook
