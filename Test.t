@@ -117,12 +117,12 @@ Loading some code is about the most testing that we can do!
   Value: `<fun>`.
   
   Processing `Just (Just 7) ~ 3`.
-  Parsed: `Just (Just {(==) 7}) ~ 3`.
+  Parsed: `Just (Just ({(==) 7})) ~ 3`.
   Has type: `Maybe (Maybe Num) -> Num`.
   Value: `<fun>`.
   
   Processing `Just{ Maybe Num } (Just{ Num } 7) ~ 3`.
-  Parsed: `Just{ Maybe Num } (Just{ Num } {(==) 7}) ~ 3`.
+  Parsed: `Just{ Maybe Num } (Just{ Num } ({(==) 7})) ~ 3`.
   Has type: `Maybe (Maybe Num) -> Num`.
   Value: `<fun>`.
   

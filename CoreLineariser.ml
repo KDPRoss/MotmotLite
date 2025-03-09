@@ -79,11 +79,10 @@ let showFuncs : (pat -> string) * (exp -> string) =
     | PWhen (e, Some t) -> "`{" -- showExp e -- "}{ " -- showTyp t -- " }"
     | PPred e -> "{" -- showExp e -- "}"
   and showPatH (p : pat) : string =
-    match p with PCVal _ | PConj _ -> showPat p | _ -> showPatS p
+    match p with PCVal _ | PConj _ | PPred _ -> showPat p | _ -> showPatS p
   and showPatS (p : pat) : string =
     match p with
-    | PAny _ | PVar _ | PCVal (_, [], []) | PTup _ | PPred _ | PWhen _ ->
-        showPat p
+    | PAny _ | PVar _ | PCVal (_, [], []) | PTup _ | PWhen _ -> showPat p
     | _ -> p &> showPat @> parenthesise
   and showExp : exp -> string = function
     | EApp (EApp (EVar x, e), e') when infixQ x ->

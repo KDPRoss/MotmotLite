@@ -142,17 +142,17 @@ Loading some code is about the most testing that we can do!
   Value: `<fun>`.
   
   Processing `3 :: (_ : [ Num ]) ~ 1`.
-  Parsed: `Cons {(==) 3} (_ : [ Num ]) ~ 1`.
+  Parsed: `Cons ({(==) 3}) (_ : [ Num ]) ~ 1`.
   Has type: `[ Num ] -> Num`.
   Value: `<fun>`.
   
   Processing ``(1 + 2) :: (_ : [ Num ]) ~ 1`.
-  Parsed: `Cons {(==) (1 + 2)} (_ : [ Num ]) ~ 1`.
+  Parsed: `Cons ({(==) (1 + 2)}) (_ : [ Num ]) ~ 1`.
   Has type: `[ Num ] -> Num`.
   Value: `<fun>`.
   
   Processing `{_ == 3} :: (_ : [ Num ]) ~ 1`.
-  Parsed: `Cons {flip (==) 3} (_ : [ Num ]) ~ 1`.
+  Parsed: `Cons ({flip (==) 3}) (_ : [ Num ]) ~ 1`.
   Has type: `[ Num ] -> Num`.
   Value: `<fun>`.
   
@@ -167,7 +167,7 @@ Loading some code is about the most testing that we can do!
   Value: `<fun>`.
   
   Processing ``(1 + 2) :: (_ : [ Num ]) ~ 1`.
-  Parsed: `Cons {(==) (1 + 2)} (_ : [ Num ]) ~ 1`.
+  Parsed: `Cons ({(==) (1 + 2)}) (_ : [ Num ]) ~ 1`.
   Has type: `[ Num ] -> Num`.
   Value: `<fun>`.
   
@@ -285,7 +285,7 @@ Loading some code is about the most testing that we can do!
   Value: `True`.
   
   Processing `fib : Num -> Num = fun ({_ > 1} and (n : Num) ~ fib (n - 2) + fib (n - 1)) (_ : Num ~ 1)`.
-  Parsed: `fib : Num -> Num = ({flip (>) 1} and (n : Num) ~ fib (n - 2) + fib (n - 1)) <+ ((_ : Num) ~ 1)
+  Parsed: `fib : Num -> Num = (({flip (>) 1}) and (n : Num) ~ fib (n - 2) + fib (n - 1)) <+ ((_ : Num) ~ 1)
   Has type: `Num -> Num`.
   Value; `<fun>`.
   Binding `fib` has been created.

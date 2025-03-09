@@ -151,7 +151,10 @@ let exp : SurfaceSyntax.exp lazyParse =
         <=> many1Spaces (cache patS)
         >>> fun ((c, ts), ps) -> SurfaceSyntax.PCVal (c, ts, ps)
       in
-      tapp ||| pcsmp ||| cache patS
+      let ppred =
+        txt "{" =*> cache exp <*= txt "}" >>> fun e -> SurfaceSyntax.PPred e
+      in
+      tapp ||| pcsmp ||| cache patS ||| ppred
     in
     lazy (core ())
   and patS : SurfaceSyntax.pat lazyParse =
@@ -172,9 +175,6 @@ let exp : SurfaceSyntax.exp lazyParse =
         in
         parens (commaSepList1 (cache patExt) <== trailer) >>> proc
       in
-      let ppred =
-        txt "{" =*> cache exp <*= txt "}" >>> fun e -> SurfaceSyntax.PPred e
-      in
       let pexp = txt "`" =*> cache expS >>> fun e -> SurfaceSyntax.PEq e in
       let pwhen =
         txt "`{" ==> cache exp <== txt "}"
@@ -193,8 +193,8 @@ let exp : SurfaceSyntax.exp lazyParse =
         >>> fun (c, ts) -> SurfaceSyntax.PCVal (c, ts, [])
       in
       let pnum = numP >>> fun n -> SurfaceSyntax.PNum n in
-      pnum ||| tapp ||| pnil ||| plist ||| pany ||| pvar ||| pcns ||| ppred
-      ||| ptup ||| pwhen ||| pexp
+      pnum ||| tapp ||| pnil ||| plist ||| pany ||| pvar ||| pcns ||| ptup
+      ||| pwhen ||| pexp
     in
     lazy (core ())
   and exp : SurfaceSyntax.exp lazyParse =
