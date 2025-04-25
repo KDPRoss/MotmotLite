@@ -5,7 +5,9 @@ set -eo pipefail
 echo "Starting container ..."
 docker run --detach --name motmot-builder --tty alpine:3
 
-CONTAINER_ID="$( docker ps --format json | jq 'select( .Names == "motmot-builder" ) | .ID' | tr -d '"' )"
+# Use this instead of `--format json` for compatibility with
+# old Docker (e.g., on Debian).
+CONTAINER_ID="$( docker ps --format "{{ json .}}" | jq 'select( .Names == "motmot-builder" ) | .ID' | tr -d '"' )"
 
 if [ -z ${CONTAINER_ID+x} ]; then
   echo "Failed to find container ID!"
