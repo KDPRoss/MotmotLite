@@ -126,8 +126,10 @@ module Mixfix : MIXFIX = struct
     [
       ([ infix "<|"; infix "|>" ], Right);
       ([ infix "<<"; infix ">>" ], Left);
-      ([ infix "or"; infix ">+>" ], Left);
-      ([ infix "and"; infix "<+>"; infix "<->" ], Left);
+      ([ infix "or" ], Left);
+      ([ infix "and" ], Left);
+      ([ infix ">+>" ], Left);
+      ([ infix "<+>"; infix "<->" ], Left);
       ( [ infix "<"; infix ">"; infix "=<"; infix ">="; infix "=="; infix "=/=" ],
         Right );
       ([ infix "::" ], Right);
