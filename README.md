@@ -30,8 +30,7 @@ ChatGPT describes MotmotLite:[^0]
 > matching, and lambda calculus.
 
 [^0]: The views of ChatGPT may not reflect those of
-OpenAI … or anyone else. Neither Motmot nor MotmotLite
-actually has dependent types.
+OpenAI … or anyone else.
 
 ## Why does MotmotLite exist?
 
@@ -61,8 +60,8 @@ I created MotmotLite for a few reasons:
     * On Debian-based Linux: `apt install opam`
   * Initialise `opam`:
     * `opam init`
-    * `opam switch create ocaml-base-compiler.5.2.1`
-    * `opam switch ocaml-base-compiler.5.2.1`
+    * `opam switch create ocaml-base-compiler.5.3.0`
+    * `opam switch ocaml-base-compiler.5.3.0`
     * `eval "$( opam env )"`
     * `opam install core extlib zarith`
       * You *may* need to install some system packages (e.g., GMP);
@@ -77,8 +76,8 @@ I created MotmotLite for a few reasons:
       your package manager … or via the horrors of Python /
       `pip`.
       * On Arch-based Linux: `pacman -S cram`
-      * On Debian-based Linux: (`apt install python3-pip ;
-        pip install cram`)
+      * On Debian-based Linux:
+        `apt install python3-pip ; pip install cram`
     * `make test`
 
 ### Option 2: Run in Docker
