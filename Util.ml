@@ -22,7 +22,7 @@ following terms:
  *             CamlTrax   *
  *                     NG *
  *                        *
- * Copyright 2007-2024    *
+ * Copyright 2007-2025    *
  *             K.D.P.Ross *)
 
 module OldString = String
