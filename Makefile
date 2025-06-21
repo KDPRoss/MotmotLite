@@ -31,7 +31,7 @@ test: $(EXEC)
 
 # -- ===== Build Targets ===== --
 
-$(EXEC): *.ml
+$(EXEC):
 	rm -f $(EXEC) \#*
 	dune build ./$(EXEC).exe --release && \
 	ln -s _build/default/$(EXEC).exe $(EXEC)
@@ -45,4 +45,5 @@ $(DOCKER_ARCHIVE):
 
 .PHONY: clean
 clean:
-	rm -rf *.cache *cmi *cmo *.cmi *.cmx *.o *~ \#* *.tex *.log *.dvi *.bbl *.aux *.ps *.blg *.pdf *.bak *.cache $(EXEC) $(BUILD_DIR) $(DOCKER_ARCHIVE)
+	rm -rf *cmi *cmo *.cmi *.cmx *.o *~ \#* $(EXEC) $(BUILD_DIR) $(DOCKER_ARCHIVE)
+
