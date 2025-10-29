@@ -801,7 +801,7 @@ let typingFuncs (showTyp : typ -> string) =
           bts
           &> List.concat_map ~f:one @> List.map ~f:extract
              @> List.sort ~compare:(fun (x, _, _) (y, _, _) ->
-                    Stdlib.compare x y)
+                 Stdlib.compare x y)
         in
         let bigG' =
           List.fold
