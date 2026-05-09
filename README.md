@@ -30,7 +30,7 @@ ChatGPT describes MotmotLite:[^0]
 > matching, and lambda calculus.
 
 [^0]: The views of ChatGPT may not reflect those of
-OpenAI … or anyone else.
+ OpenAI … or anyone else.
 
 ## Why does MotmotLite exist?
 
@@ -123,7 +123,7 @@ OCaml and GNU-based tooling.
 ### Logistics / Implementation
 
 |                                       | Motmot | MotmotLite |
-|---------------------------------------|--------|------------|
+| ------------------------------------- | ------ | ---------- |
 | Available in stores                   | [ ]    | [X]        |
 | ChatGPT-approved                      | [X]    | [X]        |
 | Created by KDP                        | [X]    | [X]        |
@@ -150,29 +150,29 @@ OCaml and GNU-based tooling.
 | Tested                                | [X]    | [-] [^4]   |
 
 [^1]: As a linguistic toy, MotmotLite isn't actually
-useful / usable. It may not be extended or employed for any
-purpose other than for study, entertainment, or to create
-further linguistic toys that are so licensed. You may not
-use MotmotLite if you have unkind or unjoyous thoughts in
-your mind. MotmotLite exists to promote peace, love, and
-functional programming.
+ useful / usable. It may not be extended or employed for any
+ purpose other than for study, entertainment, or to create
+ further linguistic toys that are so licensed. You may not
+ use MotmotLite if you have unkind or unjoyous thoughts in
+ your mind. MotmotLite exists to promote peace, love, and
+ functional programming.
 
 [^2]: Via Motmot's Emacs mode.
 
 [^3]: The MotmotLite release is in the OCaml compiled from
-the NG source.
+ the NG source.
 
-[^4]: MotmotLite nominally has a `cram`-based test file, but
-it has <1% the test coverage that Motmot has. However, given
-that much of the code was Motmot-sourced, one could make a
-(fairly-weak) argument that the code in MotmotLite has been
-covered extensively by the Motmot tests that existed when
-the code was extracted / forked.
+[^4]: MotmotLite nominally has a `cram`\-based test file, but
+ it has \<1% the test coverage that Motmot has. However, given
+ that much of the code was Motmot-sourced, one could make a
+ (fairly-weak) argument that the code in MotmotLite has been
+ covered extensively by the Motmot tests that existed when
+ the code was extracted / forked.
 
 ### Data Types
 
 |                         | Motmot | MotmotLite |
-|-------------------------|--------|------------|
+| ----------------------- | ------ | ---------- |
 | Arrays [^5]             | [X]    | [ ]        |
 | Lists                   | [X]    | [X]        |
 | Maps                    | [X]    | [X]        |
@@ -184,19 +184,19 @@ the code was extracted / forked.
 | Trees [^6]              | [X]    | [ ]        |
 
 [^5]: These are purely-functional arrays, based on Okasaki's
-work; as such they're really more ‘arrays’ than arrays
-(i.e., they don't support constant-time operations but
-log-time ones.).
+ work; as such they're really more ‘arrays’ than arrays
+ (i.e., they don't support constant-time operations but
+ log-time ones.).
 
 [^6]: Trees are a legacy of Motmot's Tanager-based heritage.
-They are ‘semi-typed’, arity-polymorphic ADTs that exist
-in a separate namespace to data constructors with the
-express goal of supporting System-S-based term rewriting.
+ They are ‘semi-typed’, arity-polymorphic ADTs that exist
+ in a separate namespace to data constructors with the
+ express goal of supporting System-S-based term rewriting.
 
 ### Language Features
 
 |                                                | Motmot | MotmotLite |
-|------------------------------------------------|--------|------------|
+| ---------------------------------------------- | ------ | ---------- |
 | Bottom-up-only type inference                  | [X]    | [X]        |
 | Complicated file loader                        | [X]    | [ ]        |
 | Direct-style recursive evaluator               | [X]    | [X]        |
@@ -218,12 +218,12 @@ express goal of supporting System-S-based term rewriting.
 | User-defined mixfix syntax                     | [X]    | [ ]        |
 
 [^7]: Motmot's `try`–`recover` is similar to exception
-handling in other languages but subtly distinct.
+ handling in other languages but subtly distinct.
 
 ### Pattern Styles
 
 |                  | Motmot | MotmotLite |
-|------------------|--------|------------|
+| ---------------- | ------ | ---------- |
 | Conjunction      | [X]    | [X]        |
 | Data constructor | [X]    | [X]        |
 | Disjunction      | [X]    | [ ]        |
